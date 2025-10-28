@@ -57,10 +57,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
       // 💡 MIGRATED STEP 1: Replace supabaseService.uploadImage
       if (_selectedImage != null) {
         imageUrl = await apiService.uploadImage(_selectedImage!);
-        if (imageUrl == null && _selectedImage != null) {
-             // Handle case where upload failed but file was present
-            throw Exception("Failed to upload image. Please try again.");
-        }
       }
 
       // 💡 MIGRATED STEP 2: Replace supabaseService.addFeedback

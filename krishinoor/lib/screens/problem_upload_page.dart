@@ -88,7 +88,6 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
 
       await _apiService.reportProblem(
         description: _descController.text,
-        userId: userId,
         imageFile: _image,
         imageUrl: _imageUrlController.text.isNotEmpty ? _imageUrlController.text : null,
       );

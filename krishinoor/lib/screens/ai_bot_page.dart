@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../l10n/app_localizations.dart'; // Import L10n
 import 'package:flutter/foundation.dart'; // Import kDebugMode
+import 'package:flutter_markdown/flutter_markdown.dart'; // 💡 1. IMPORT MARKDOWN PACKAGE
 
 class AIBotPage extends StatefulWidget {
   const AIBotPage({super.key});
@@ -29,6 +30,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
   // FIX: Make apiKey and _model late
   late final String apiKey; 
   late GenerativeModel _model;
+  bool _modelInitialized = false; // Track if model is ready
 
   late AnimationController _animationController;
   late AnimationController _pulseController;
@@ -61,6 +63,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
         model: "gemini-2.5-flash",
         apiKey: apiKey,
       );
+      _modelInitialized = true;
     }
 
     _setupAnimations();
@@ -110,13 +113,12 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
     });
   }
 
-  // NOTE: Reverting error messages to hardcoded strings as localized keys were not provided.
   Future<String> _getAIResponse(
     String userMessage,
     AppLocalizations l10n, {
     String? base64Image,
   }) async {
-    if (apiKey.isEmpty) {
+    if (!_modelInitialized) {
       return "⚠️ Gemini API Key not found. Please configure your .env file.";
     }
 
@@ -151,7 +153,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
     if (!isImage && _controller.text.trim().isEmpty) return;
     
     // Check if model is initialized before proceeding
-    if (apiKey.isEmpty) {
+    if (!_modelInitialized) {
       setState(() {
         messages.add({"role": "bot", "text": "⚠️ Cannot send message. Gemini model failed to initialize due to missing API Key."});
       });
@@ -464,12 +466,26 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
               const SizedBox(width: 8),
             ],
             Flexible(
-              child: Text(
-                text,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: isUser ? Colors.white : Colors.black87,
-                  height: 1.4,
+              // 💡 2. REPLACE Text WITH MarkdownBody
+              child: MarkdownBody(
+                data: text,
+                selectable: true,
+                styleSheet: MarkdownStyleSheet(
+                  p: TextStyle(
+                    fontSize: 15,
+                    color: isUser ? Colors.white : Colors.black87,
+                    height: 1.4,
+                  ),
+                  strong: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isUser ? Colors.white : Colors.black87,
+                  ),
+                  listBullet: TextStyle(
+                    fontSize: 15,
+                    color: isUser ? Colors.white : Colors.black87,
+                    height: 1.4,
+                  ),
+                  // Add more styles as needed (e.g., h1, h2)
                 ),
               ),
             ),
@@ -774,3 +790,4 @@ class _TypingDotsState extends State<_TypingDots>
     );
   }
 }
+
