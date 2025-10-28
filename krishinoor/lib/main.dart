@@ -1,35 +1,45 @@
+// lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+// REMOVED: import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'screens/splash_screen.dart'; // Correctly points to the starting screen
+
+import 'screens/splash_screen.dart';
 import 'l10n/app_localizations.dart';
 
+// --- NEW GLOBAL CONSTANT FOR BASE URL ---
+// This will hold the Vercel URL loaded from the .env file.
+String? kBaseUrl; 
+
 Future<void> main() async {
+  // Ensures all Flutter bindings are initialized before calling native code
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables from assets/.env file
+  // Load environment variables from .env file
   try {
-    await dotenv.load(fileName: "assets/.env");
+    // 1. Load the .env file
+    await dotenv.load(fileName: ".env");
     debugPrint("✅ Loaded .env file");
+    debugPrint("✅ Loaded .env file");
+    
+    // 2. Load the Vercel Base URL and store it globally
+    kBaseUrl = dotenv.env['VERCEL_BASE_URL'];
+
+    if (kBaseUrl == null) {
+      debugPrint("❌ Could not find VERCEL_BASE_URL in .env file. API calls will likely fail.");
+    } else {
+      debugPrint("✅ Vercel Base URL loaded: $kBaseUrl");
+    }
+
   } catch (e) {
     debugPrint("❌ Could not load .env file: $e");
   }
 
-  // Initialize Supabase
-  final supabaseUrl = dotenv.env['SUPABASE_URL'];
-  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
-
-  if (supabaseUrl != null && supabaseAnonKey != null) {
-    await Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
-    );
-    debugPrint("✅ Supabase initialized");
-  } else {
-    debugPrint("❌ Supabase keys missing, please check assets/.env");
-  }
+  // --- REMOVED SUPABASE INITIALIZATION ---
+  // All Supabase.initialize logic has been deleted.
+  // ----------------------------------------
 
   // Load saved language code from SharedPreferences
   final prefs = await SharedPreferences.getInstance();

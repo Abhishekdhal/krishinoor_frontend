@@ -917,6 +917,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cabinet approved revised interest rate for FY 2025-26 with existing 1.5% interest subsidy (ISS).'**
   String get notice5Text;
+
+  /// No description provided for @profileLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load profile'**
+  String get profileLoadFailed;
+
+  /// No description provided for @profileUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update profile'**
+  String get profileUpdateFailed;
+
+  /// No description provided for @krishiMitraSystemPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'You are Krishi Mitra 🌱, a multilingual AI farming assistant. Farmers may upload crop/soil/pest images. Analyze and give advice in Hindi, Punjabi, Odia, or English. Be helpful, practical, and encouraging.'**
+  String get krishiMitraSystemPrompt;
 }
 
 class _AppLocalizationsDelegate

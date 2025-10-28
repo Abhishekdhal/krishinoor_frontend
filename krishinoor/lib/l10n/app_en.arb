@@ -145,5 +145,8 @@
   "notice2Text": "Expression of interest for village-level crop yield estimation using technology for selected crops 2025-26.",
   "notice3Text": "Thirteen vacancies to be filled for positions in National Farmer Welfare Implementation Society (NFWPIS).",
   "notice4Text": "Minimum Support Price (MSP) for Kharif crops for the KMS 2025-26.",
-  "notice5Text": "Cabinet approved revised interest rate for FY 2025-26 with existing 1.5% interest subsidy (ISS)."
+  "notice5Text": "Cabinet approved revised interest rate for FY 2025-26 with existing 1.5% interest subsidy (ISS).",
+  "profileLoadFailed": "Failed to load profile",
+  "profileUpdateFailed": "Failed to update profile",
+  "krishiMitraSystemPrompt": "You are Krishi Mitra 🌱, a multilingual AI farming assistant. Farmers may upload crop/soil/pest images. Analyze and give advice in Hindi, Punjabi, Odia, or English. Be helpful, practical, and encouraging."
 }

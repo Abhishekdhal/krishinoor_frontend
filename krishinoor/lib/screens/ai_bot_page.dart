@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../l10n/app_localizations.dart'; // Import L10n
+import 'package:flutter/foundation.dart'; // Import kDebugMode
 
 class AIBotPage extends StatefulWidget {
   const AIBotPage({super.key});
@@ -24,7 +25,9 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
   bool _isListening = false;
   bool _isLoading = false;
   File? _selectedImage;
-  final String apiKey = dotenv.env['GEMINI_API_KEY'] ?? "";
+  
+  // FIX: Make apiKey and _model late
+  late final String apiKey; 
   late GenerativeModel _model;
 
   late AnimationController _animationController;
@@ -41,13 +44,27 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _setupAnimations();
+    
+    // FIX: Initialize apiKey and _model safely inside initState
+    try {
+      // Dart's non-nullable access is safe here since dotenv is loaded in main.dart
+      apiKey = dotenv.env['GEMINI_API_KEY']!;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint("FATAL ERROR: Failed to read GEMINI_API_KEY. Ensure it is set in .env.");
+      }
+      apiKey = "";
+    }
+    
     if (apiKey.isNotEmpty) {
       _model = GenerativeModel(
         model: "gemini-2.5-flash",
         apiKey: apiKey,
       );
     }
+
+    _setupAnimations();
+    
     // Call in post-frame callback to ensure context is available for l10n
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _addWelcomeMessage();
@@ -110,8 +127,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
     try {
       final prompt = Content.multi([
         // Setting the model's role
-        TextPart(
-            "You are Krishi Mitra 🌱, a multilingual AI farming assistant. Farmers may upload crop/soil/pest images. Analyze and give advice in Hindi, Punjabi, Odia, or English. Be helpful, practical, and encouraging."),
+        TextPart(l10n.krishiMitraSystemPrompt),
         TextPart(userMessage),
         if (base64Image != null)
           DataPart("image/jpeg", base64Decode(base64Image)),
@@ -133,6 +149,16 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
     final l10n = AppLocalizations.of(context)!; // Get L10n object
 
     if (!isImage && _controller.text.trim().isEmpty) return;
+    
+    // Check if model is initialized before proceeding
+    if (apiKey.isEmpty) {
+      setState(() {
+        messages.add({"role": "bot", "text": "⚠️ Cannot send message. Gemini model failed to initialize due to missing API Key."});
+      });
+      _scrollToBottom();
+      return;
+    }
+
 
     final userText = _controller.text.trim();
     String? base64Image;
@@ -244,8 +270,8 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
             end: Alignment.bottomRight,
             colors: [
               backgroundWhite,
-              lightGreen.withOpacity(0.1),
-              primaryGreen.withOpacity(0.05),
+              lightGreen.withAlpha(26),
+              primaryGreen.withAlpha(13),
             ],
           ),
         ),
@@ -285,7 +311,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
         ),
         boxShadow: [
           BoxShadow(
-            color: primaryGreen.withOpacity(0.3),
+            color: primaryGreen.withAlpha(76),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -306,7 +332,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withAlpha(51),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -336,7 +362,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
                   l10n.botSubtitle, // Localized App Bar Subtitle
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withAlpha(204),
                   ),
                 ),
               ],
@@ -409,7 +435,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withAlpha(26),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -465,7 +491,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withAlpha(26),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -516,7 +542,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha(26),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -566,7 +592,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha(26),
             blurRadius: 15,
             offset: const Offset(0, -5),
           ),
@@ -600,7 +626,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
                   color: backgroundWhite,
                   borderRadius: BorderRadius.circular(25),
                   border: Border.all(
-                    color: primaryGreen.withOpacity(0.2),
+                    color: primaryGreen.withAlpha(51),
                     width: 1,
                   ),
                 ),
@@ -637,7 +663,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: primaryGreen.withOpacity(0.4),
+                          color: primaryGreen.withAlpha(102),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -671,7 +697,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: isActive ? color.withOpacity(0.2) : Colors.grey.shade100,
+        color: isActive ? color.withAlpha(51) : Colors.grey.shade100,
         shape: BoxShape.circle,
         border: Border.all(
           color: isActive ? color : Colors.grey.shade300,

@@ -1,4 +1,9 @@
 {
+  "project_info": {
+    "project_number": "439561481727",
+    "project_id": "farmers-for-india",
+    "storage_bucket": "farmers-for-india.firebasestorage.app"
+  },
   "client": [
     {
       "client_info": {

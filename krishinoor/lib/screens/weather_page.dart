@@ -183,7 +183,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
           gradient: LinearGradient(
             colors: [
               _getGradientColor(),
-              _getGradientColor().withOpacity(0.8),
+              _getGradientColor().withAlpha(204),
               const Color(0xFF00f2fe),
             ],
             begin: Alignment.topLeft,
@@ -262,7 +262,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
                   icon: const Icon(Icons.refresh),
                   label: const Text('Retry'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: Colors.white.withAlpha(51),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
@@ -278,7 +278,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withAlpha(26),
                     borderRadius: BorderRadius.circular(40),
                   ),
                   child: const Center(
@@ -309,20 +309,20 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.white.withOpacity(0.2),
-            Colors.white.withOpacity(0.1),
+            Colors.white.withAlpha(51),
+            Colors.white.withAlpha(26),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withAlpha(51),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha(26),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -344,7 +344,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
             weatherData!['location']['country'],
             style: TextStyle(
               fontSize: 16,
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withAlpha(204),
             ),
           ),
           const SizedBox(height: 20),
@@ -359,7 +359,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withAlpha(26),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: ClipRRect(
@@ -391,7 +391,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
                     weatherData!['current']['condition']['text'],
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withAlpha(230),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -406,14 +406,14 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withAlpha(26),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               "Feels like ${weatherData!['current']['feelslike_c'].round()}°",
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withAlpha(204),
               ),
             ),
           ),
@@ -463,10 +463,10 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withAlpha(38),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withAlpha(51),
           width: 1,
         ),
       ),
@@ -476,7 +476,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
           Icon(
             icon,
             size: 28,
-            color: color.withOpacity(0.8),
+            color: color.withAlpha(204),
           ),
           const SizedBox(height: 8),
           Text(
@@ -491,7 +491,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
             title,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withAlpha(178),
             ),
           ),
         ],
@@ -510,7 +510,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withAlpha(230),
             ),
           ),
         ),
@@ -531,10 +531,10 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
                 margin: const EdgeInsets.only(right: 16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withAlpha(38),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withAlpha(51),
                     width: 1,
                   ),
                 ),
@@ -554,7 +554,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withAlpha(26),
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: ClipRRect(
@@ -583,7 +583,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
                         Text(
                           "$minTemp°",
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
+                            color: Colors.white.withAlpha(153),
                             fontSize: 14,
                           ),
                         ),
@@ -595,7 +595,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
                         getFarmingTipFromData(day['day'], l10n),
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withAlpha(178),
                         ),
                         textAlign: TextAlign.center,
                         maxLines: 3,
@@ -623,7 +623,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withAlpha(230),
             ),
           ),
         ),
@@ -643,10 +643,10 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
                 margin: const EdgeInsets.only(right: 12),
                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withAlpha(38),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withAlpha(51),
                     width: 1,
                   ),
                 ),
@@ -657,7 +657,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
                       time.substring(0, 5),
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withAlpha(204),
                         fontSize: 12,
                       ),
                     ),

@@ -98,7 +98,7 @@ class _SupplementsPageState extends State<SupplementsPage> with SingleTickerProv
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withAlpha(26),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -139,7 +139,7 @@ class _SupplementsPageState extends State<SupplementsPage> with SingleTickerProv
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withOpacity(0.3),
+                            Colors.black.withAlpha(76),
                           ],
                         ),
                       ),
@@ -253,7 +253,7 @@ class _SupplementsPageState extends State<SupplementsPage> with SingleTickerProv
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withAlpha(26),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),

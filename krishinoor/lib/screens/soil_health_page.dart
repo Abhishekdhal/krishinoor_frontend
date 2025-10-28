@@ -147,7 +147,7 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                     Container(
                       padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withAlpha(51),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(Icons.grass, color: Colors.white, size: 24),
@@ -167,7 +167,7 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                         Text(
                           'Test & improve your soil',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withAlpha(230),
                             fontSize: 13,
                           ),
                         ),
@@ -194,7 +194,7 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withAlpha(13),
                             blurRadius: 10,
                             offset: Offset(0, 4),
                           ),
@@ -282,7 +282,7 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withAlpha(13),
                               blurRadius: 10,
                               offset: Offset(0, 4),
                             ),
@@ -432,7 +432,7 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withAlpha(13),
                               blurRadius: 10,
                               offset: Offset(0, 4),
                             ),
@@ -469,7 +469,7 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                             Container(
                               padding: EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Color(0xFF4CAF50).withOpacity(0.1),
+                                color: Color(0xFF4CAF50).withAlpha(26),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
@@ -494,7 +494,7 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withAlpha(13),
                             blurRadius: 10,
                             offset: Offset(0, 4),
                           ),

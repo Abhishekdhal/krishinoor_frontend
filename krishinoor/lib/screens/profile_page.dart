@@ -1,10 +1,15 @@
+// lib/screens/profile_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+// REMOVED: import 'package:supabase_flutter/supabase_flutter.dart'; 
 import '../l10n/app_localizations.dart';
 import '../main.dart'; // for FarmersApp.setLocale
+import '../services/api_service.dart'; // 💡 NEW: Import the custom API service
 
 class ProfilePage extends StatefulWidget {
+  // NOTE: Initial data via constructor is less necessary now, 
+  // as the page fetches data directly. We keep it for safety.
   final String? initialName;
   final String? initialEmail;
   final String? initialPhone;
@@ -29,6 +34,9 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
   String? _selectedLanguage;
   bool _isLoading = false;
   bool _isSaving = false;
+
+  // 💡 NEW: Initialize API service
+  final ApiService _apiService = ApiService();
 
   late AnimationController _animationController;
   late AnimationController _avatarController;
@@ -97,69 +105,90 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
     _animationController.forward();
   }
 
+  /// 💡 MIGRATED: Fetches profile data from Vercel backend and supplements with local data.
   Future<void> _loadUserData() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     
     try {
-      final user = Supabase.instance.client.auth.currentUser;
-      final prefs = await SharedPreferences.getInstance();
+      // 1. Fetch data from Vercel endpoint
+      final remoteData = await _apiService.fetchUserProfile();
       
-      setState(() {
-        if (user != null) {
-          _nameController.text = user.userMetadata?['full_name'] ?? 
-                                 prefs.getString("name") ?? 
-                                 widget.initialName ?? "";
+      // 2. Load local preferences (for language, as it's not server-stored here)
+      final prefs = await SharedPreferences.getInstance();
+      final savedLang = prefs.getString("language");
+      
+      // 3. Update controllers and state
+      if (mounted) {
+        setState(() {
+          // Use remote data as primary source, fallback to local prefs or initial values
+          _nameController.text = remoteData['name'] ?? prefs.getString("name") ?? widget.initialName ?? "";
+          _emailController.text = remoteData['email'] ?? prefs.getString("email") ?? widget.initialEmail ?? "";
+          _phoneController.text = remoteData['phone'] ?? prefs.getString("phone") ?? widget.initialPhone ?? "";
           
-          _emailController.text = user.email ?? 
-                                 prefs.getString("email") ?? 
-                                 widget.initialEmail ?? "";
-          
-          _phoneController.text = user.userMetadata?['phone'] ?? 
-                                 prefs.getString("phone") ?? 
-                                 widget.initialPhone ?? "";
-        } else {
+          _selectedLanguage = savedLang ?? "en";
+          _isLoading = false;
+        });
+      }
+      
+    } catch (e) {
+      debugPrint("Error loading user data from API: $e");
+      
+      // Fallback: If API fails, load basic data from SharedPreferences only.
+      final prefs = await SharedPreferences.getInstance();
+      if (mounted) {
+        setState(() {
           _nameController.text = prefs.getString("name") ?? widget.initialName ?? "";
           _emailController.text = prefs.getString("email") ?? widget.initialEmail ?? "";
           _phoneController.text = prefs.getString("phone") ?? widget.initialPhone ?? "";
-        }
+          _selectedLanguage = prefs.getString("language") ?? "en";
+          _isLoading = false;
+        });
         
-        _selectedLanguage = prefs.getString("language") ?? "en";
-        _isLoading = false;
-      });
-    } catch (e) {
-      debugPrint("Error loading user data: $e");
-      setState(() => _isLoading = false);
+        // Show an error snackbar for the API failure
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to load profile from server. Data might be old."),
+            backgroundColor: Colors.orange.shade600,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
     }
   }
 
+  /// 💡 MIGRATED: Updates profile data using Vercel backend.
   Future<void> _saveUserData() async {
+    final l10n = AppLocalizations.of(context);
     if (_formKey.currentState!.validate()) {
+      if (!mounted) return;
       setState(() => _isSaving = true);
       
       try {
+        // 1. Send update to Vercel endpoint
+        // NOTE: We do not update email here, as it requires special verification flow.
+        await _apiService.updateProfile(
+          name: _nameController.text.trim(),
+          phone: _phoneController.text.trim(),
+          language: _selectedLanguage!,
+        );
+
+        // 2. Save local preferences (always save local state on success)
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("name", _nameController.text.trim());
-        await prefs.setString("email", _emailController.text.trim());
-        await prefs.setString("phone", _phoneController.text.trim());
+        // Email is excluded from local save here as it wasn't updated via API
+        await prefs.setString("phone", _phoneController.text.trim()); 
         await prefs.setString("language", _selectedLanguage!);
 
-        final user = Supabase.instance.client.auth.currentUser;
-        if (user != null) {
-          await Supabase.instance.client.auth.updateUser(
-            UserAttributes(
-              email: _emailController.text.trim(),
-              data: {
-                'full_name': _nameController.text.trim(),
-                'phone': _phoneController.text.trim(),
-              },
-            ),
-          );
+        // 3. Update app locale
+        if (_selectedLanguage != null) {
+          FarmersApp.setLocale(context, Locale(_selectedLanguage!));
         }
 
-        FarmersApp.setLocale(context, Locale(_selectedLanguage!));
-
+        // 4. Show success message
         if (!mounted) return;
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -167,7 +196,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withAlpha(51),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.check_circle, color: Colors.white, size: 20),
@@ -175,7 +204,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                 const SizedBox(width: 16),
                 Expanded(
                   child: Text(
-                    AppLocalizations.of(context)?.profileUpdated ?? "Profile updated successfully!",
+                    l10n?.profileUpdated ?? "Profile updated successfully!",
                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                   ),
                 ),
@@ -197,7 +226,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
         });
         
       } catch (e) {
-        debugPrint("Error saving user data: $e");
+        debugPrint("Error saving user data to API: $e");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -207,7 +236,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
-                      "Failed to update profile: ${e.toString()}",
+                      l10n?.profileUpdateFailed ?? "Failed to update profile.",
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -234,13 +263,14 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
     String? Function(String?)? validator,
     bool enabled = true,
   }) {
+    // ... (unchanged)
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         color: enabled ? Colors.white : Colors.grey.shade50,
         boxShadow: [
           BoxShadow(
-            color: Colors.green.withOpacity(0.08),
+            color: Colors.green.withAlpha(20),
             blurRadius: 20,
             offset: const Offset(0, 4),
             spreadRadius: 0,
@@ -332,7 +362,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withAlpha(51),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: IconButton(
@@ -356,7 +386,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                         Text(
                           "Manage your information",
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withAlpha(230),
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
                           ),
@@ -396,7 +426,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                 borderRadius: BorderRadius.circular(32),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.15),
+                                    color: Colors.black.withAlpha(38),
                                     blurRadius: 30,
                                     offset: const Offset(0, 10),
                                     spreadRadius: 0,
@@ -427,7 +457,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                             ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.green.withOpacity(0.4),
+                                                color: Colors.green.withAlpha(102),
                                                 blurRadius: 25,
                                                 offset: const Offset(0, 10),
                                                 spreadRadius: 0,
@@ -475,7 +505,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       ),
                                       const SizedBox(height: 36),
 
-                                      // Section Header
+                                      // Section Header: PERSONAL INFORMATION
                                       Align(
                                         alignment: Alignment.centerLeft,
                                         child: Text(
@@ -502,13 +532,13 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       ),
                                       const SizedBox(height: 20),
 
-                                      // Email Field
+                                      // Email Field (Now disabled/read-only)
                                       _buildCustomTextField(
                                         controller: _emailController,
                                         labelText: l10n?.email ?? "Email",
                                         prefixIcon: Icons.email_outlined,
                                         keyboardType: TextInputType.emailAddress,
-                                        enabled: false,
+                                        enabled: false, // Email should not be editable without a complex backend flow
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
                                             return l10n?.email ?? "Enter your email";
@@ -533,7 +563,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       ),
                                       const SizedBox(height: 32),
 
-                                      // Section Header
+                                      // Section Header: PREFERENCES
                                       Align(
                                         alignment: Alignment.centerLeft,
                                         child: Text(
@@ -555,7 +585,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                           color: Colors.white,
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.green.withOpacity(0.08),
+                                              color: Colors.green.withAlpha(20),
                                               blurRadius: 20,
                                               offset: const Offset(0, 4),
                                             ),
@@ -639,7 +669,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.green.withOpacity(0.4),
+                                              color: Colors.green.withAlpha(102),
                                               blurRadius: 20,
                                               offset: const Offset(0, 10),
                                               spreadRadius: 0,

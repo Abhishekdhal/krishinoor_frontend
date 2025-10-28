@@ -1,8 +1,11 @@
+// lib/screens/login_page.dart
+
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+// REMOVED: import 'package:supabase_flutter/supabase_flutter.dart'; // No longer needed
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_localizations.dart';
 import '../main.dart'; // for FarmersApp.setLocale
+import '../services/api_service.dart'; // 💡 NEW: Import the custom API service
 import 'home_page.dart';
 import 'signup_page.dart';
 
@@ -19,6 +22,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   String? _selectedLanguage;
   bool _isLoading = false;
   bool _obscurePassword = true;
+
+  // 💡 NEW: Initialize API service
+  final ApiService _apiService = ApiService();
 
   late AnimationController _animationController;
   late AnimationController _pulseController;
@@ -88,11 +94,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     });
 
     if (savedLangCode != null) {
+      // Assuming FarmersApp is in main.dart and its setLocale helper is available
       FarmersApp.setLocale(context, Locale(savedLangCode));
     }
   }
 
-  /// Handles standard email/password Supabase sign-in.
+  /// 💡 MIGRATED: Handles standard email/password login using Vercel backend.
   Future<void> _login() async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
@@ -105,25 +112,28 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     setState(() => _isLoading = true);
 
     try {
-      final response = await Supabase.instance.client.auth.signInWithPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+      // 💡 REPLACED: Supabase.instance.client.auth.signInWithPassword(...)
+      await _apiService.loginUser(
+        _emailController.text,
+        _passwordController.text,
       );
 
-      if (response.session != null) {
-        // Save selected language locally upon successful login
-        final prefs = await SharedPreferences.getInstance();
-        if (_selectedLanguage != null) {
-          await prefs.setString("language", _selectedLanguage!);
-        }
-
-        if (!mounted) return;
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const HomePage()));
+      // --- Success Logic ---
+      // Token is now saved inside _apiService.loginUser
+      
+      // Save selected language locally upon successful login
+      final prefs = await SharedPreferences.getInstance();
+      if (_selectedLanguage != null) {
+        await prefs.setString("language", _selectedLanguage!);
       }
-    } on AuthException catch (error) {
-      _showCustomSnackBar(error.message, isError: true);
+
+      if (!mounted) return;
+      // Navigate to home page
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (_) => const HomePage()));
+          
     } catch (e) {
+      // Catch exceptions thrown by _apiService.loginUser
       _showCustomSnackBar(l10n.loginFailed, isError: true);
       debugPrint("Login Error: $e");
     } finally {
@@ -131,13 +141,17 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     }
   }
 
-  /// Handles Google OAuth sign-in via Supabase.
+  /// ⚠️ MIGRATED/TEMPORARILY REMOVED: Google OAuth sign-in.
+  /// This must be entirely re-architected on the Vercel backend side.
   Future<void> _loginWithGoogle() async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
 
+    _showCustomSnackBar("Google Login is not yet configured for Vercel backend.", isError: true);
+    
+    // The original logic is commented out/replaced as it relies heavily on Supabase's built-in SDK.
+    /*
     setState(() => _isLoading = true);
-
     try {
       await Supabase.instance.client.auth.signInWithOAuth(
         OAuthProvider.google,
@@ -151,9 +165,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+    */
   }
 
   void _showCustomSnackBar(String message, {bool isError = false}) {
+    // ... (Snackbar implementation remains the same)
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -175,6 +191,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 
   Widget _buildGradientBackground() {
+    // ... (unchanged)
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -193,9 +210,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.white.withOpacity(0.1),
+              Colors.white.withAlpha(26),
               Colors.transparent,
-              Colors.black.withOpacity(0.1),
+              Colors.black.withAlpha(26),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -206,6 +223,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 
   Widget _buildFloatingElements() {
+    // ... (unchanged)
     return Stack(
       children: [
         Positioned(
@@ -221,7 +239,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withAlpha(26),
                   ),
                 ),
               );
@@ -241,7 +259,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   height: 50,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.08),
+                    color: Colors.white.withAlpha(20),
                   ),
                 ),
               );
@@ -260,12 +278,13 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     TextInputType keyboardType = TextInputType.text,
     Widget? suffixIcon,
   }) {
+    // ... (unchanged)
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withAlpha(20),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -282,7 +301,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           labelText: labelText,
           labelStyle: TextStyle(color: Colors.green.shade700, fontSize: 13),
           filled: true,
-          fillColor: Colors.white.withOpacity(0.9),
+          fillColor: Colors.white.withAlpha(230),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -309,6 +328,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     Color textColor = Colors.white,
     double fontSize = 16,
   }) {
+    // ... (unchanged)
     return Container(
       width: double.infinity,
       height: 46,
@@ -316,7 +336,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: colors.first.withOpacity(0.3),
+            color: colors.first.withAlpha(76),
             blurRadius: 10,
             offset: const Offset(0, 6),
           ),
@@ -402,7 +422,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       child: Container(
                         constraints: const BoxConstraints(maxWidth: 360),
                         child: Card(
-                          color: Colors.white.withOpacity(0.95),
+                          color: Colors.white.withAlpha(242),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -413,8 +433,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                               borderRadius: BorderRadius.circular(20),
                               gradient: LinearGradient(
                                 colors: [
-                                  Colors.white.withOpacity(0.9),
-                                  Colors.white.withOpacity(0.95),
+                                  Colors.white.withAlpha(230),
+                                  Colors.white.withAlpha(242),
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -440,7 +460,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.green.withOpacity(0.3),
+                                          color: Colors.green.withAlpha(76),
                                           blurRadius: 12,
                                           offset: const Offset(0, 6),
                                         ),
@@ -526,7 +546,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                       borderRadius: BorderRadius.circular(12),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withOpacity(0.08),
+                                          color: Colors.black.withAlpha(20),
                                           blurRadius: 8,
                                           offset: const Offset(0, 3),
                                         ),
@@ -554,7 +574,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                         labelStyle: TextStyle(
                                             color: Colors.green.shade700, fontSize: 13),
                                         filled: true,
-                                        fillColor: Colors.white.withOpacity(0.9),
+                                        fillColor: Colors.white.withAlpha(230),
                                         border: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(12),
                                           borderSide: BorderSide.none,
@@ -613,7 +633,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                       borderRadius: BorderRadius.circular(12),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.grey.withOpacity(0.15),
+                                          color: Colors.grey.withAlpha(38),
                                           blurRadius: 8,
                                           offset: const Offset(0, 3),
                                         ),
@@ -630,6 +650,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                           : Image.asset(
                                               'assets/images/google.png',
                                               height: 18,
+                                              width: 18,
                                             ),
                                       label: Text(
                                         l10n.loginWithGoogle,

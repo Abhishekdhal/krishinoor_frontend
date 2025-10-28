@@ -1,8 +1,11 @@
+// lib/screens/problem_upload_page.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../l10n/app_localizations.dart';
+import '../services/api_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ProblemUploadPage extends StatefulWidget {
   const ProblemUploadPage({super.key});
@@ -15,9 +18,13 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
   File? _image;
   final picker = ImagePicker();
   final TextEditingController _descController = TextEditingController();
+  final TextEditingController _imageUrlController = TextEditingController(); // NEW: Image URL controller
   bool _loading = false;
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
+  
+  final ApiService _apiService = ApiService();
+  final _storage = FlutterSecureStorage();
 
   @override
   void initState() {
@@ -36,6 +43,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
   void dispose() {
     _controller.dispose();
     _descController.dispose();
+    _imageUrlController.dispose(); // NEW: Dispose URL controller
     super.dispose();
   }
 
@@ -49,43 +57,44 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
   }
 
   Future<void> uploadImage(AppLocalizations l10n) async {
-    if (_image == null || _descController.text.isEmpty) {
+    // Validation
+    if (_descController.text.isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.addDescriptionAndImage),
-          backgroundColor: Colors.orange,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+        const SnackBar(content: Text('Please add a description.')),
       );
       return;
+    }
+
+    if (_imageUrlController.text.isEmpty && _image == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please provide an image URL or upload an image file.')),
+        );
+        return;
     }
 
     setState(() => _loading = true);
 
     try {
-      final user = Supabase.instance.client.auth.currentUser;
-      final fileName = "problem_${DateTime.now().millisecondsSinceEpoch}.jpg";
+      final userId = await _storage.read(key: 'user_email');
+      if (userId == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not authenticated.')),
+        );
+        return;
+      }
 
-      // Upload to Storage
-      await Supabase.instance.client.storage
-          .from('problems')
-          .upload(fileName, _image!);
-
-      // Get public URL
-      final publicUrl = Supabase.instance.client.storage
-          .from('problems')
-          .getPublicUrl(fileName);
-
-      // Insert metadata into DB
-      await Supabase.instance.client.from('problems').insert({
-        'user_id': user?.id ?? 'guest',
-        'description': _descController.text,
-        'image_url': publicUrl,
-        'created_at': DateTime.now().toIso8601String(),
-      });
+      await _apiService.reportProblem(
+        description: _descController.text,
+        userId: userId,
+        imageFile: _image,
+        imageUrl: _imageUrlController.text.isNotEmpty ? _imageUrlController.text : null,
+      );
 
       if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -96,24 +105,18 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
             ],
           ),
           backgroundColor: Color(0xFF4CAF50),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
 
       setState(() {
         _image = null;
         _descController.clear();
+        _imageUrlController.clear();
       });
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("${l10n.error}$e"),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+        SnackBar(content: Text("${l10n.error} ${e.toString().replaceFirst('Exception: ', '')}")),
       );
     } finally {
       setState(() => _loading = false);
@@ -190,9 +193,9 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
         width: 120,
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Color(0xFF4CAF50).withOpacity(0.1),
+          color: Color(0xFF4CAF50).withAlpha(26),
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Color(0xFF4CAF50).withOpacity(0.3)),
+          border: Border.all(color: Color(0xFF4CAF50).withAlpha(76)),
         ),
         child: Column(
           children: [
@@ -258,7 +261,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                     Container(
                       padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withAlpha(51),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(Icons.bug_report, color: Colors.white, size: 24),
@@ -278,7 +281,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                         Text(
                           'Report crop issues & get help',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withAlpha(230),
                             fontSize: 13,
                           ),
                         ),
@@ -305,7 +308,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withAlpha(13),
                             blurRadius: 10,
                             offset: Offset(0, 4),
                           ),
@@ -365,14 +368,99 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                       ),
                     ),
                     SizedBox(height: 20),
-                    // Image Upload Card
+                    
+                    // NEW: Image URL Card
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withAlpha(13),
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      padding: EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(Icons.link, color: Colors.white, size: 20),
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                'Add Image URL',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'Optional',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 16),
+                          TextField(
+                            controller: _imageUrlController,
+                            decoration: InputDecoration(
+                              hintText: 'Paste image URL here (required)...',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              prefixIcon: Icon(Icons.insert_link, color: Color(0xFF4CAF50)),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Color(0xFF4CAF50), width: 2),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    
+                    // Image Upload Card (Modified - Optional)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(13),
                             blurRadius: 10,
                             offset: Offset(0, 4),
                           ),
@@ -403,6 +491,22 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                                   color: Colors.black87,
                                 ),
                               ),
+                              SizedBox(width: 8),
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'Optional',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                           SizedBox(height: 16),
@@ -427,7 +531,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                                           Container(
                                             padding: EdgeInsets.all(16),
                                             decoration: BoxDecoration(
-                                              color: Color(0xFF4CAF50).withOpacity(0.1),
+                                              color: Color(0xFF4CAF50).withAlpha(26),
                                               shape: BoxShape.circle,
                                             ),
                                             child: Icon(
@@ -485,7 +589,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                                             shape: BoxShape.circle,
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.black.withOpacity(0.2),
+                                                color: Colors.black.withAlpha(51),
                                                 blurRadius: 8,
                                               ),
                                             ],
@@ -522,6 +626,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                       ),
                     ),
                     SizedBox(height: 24),
+                    
                     // Upload Button
                     SizedBox(
                       width: double.infinity,
@@ -563,13 +668,14 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                       ),
                     ),
                     SizedBox(height: 16),
+                    
                     // Info Card
                     Container(
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Color(0xFF4CAF50).withOpacity(0.1),
+                        color: Color(0xFF4CAF50).withAlpha(26),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Color(0xFF4CAF50).withOpacity(0.2)),
+                        border: Border.all(color: Color(0xFF4CAF50).withAlpha(51)),
                       ),
                       child: Row(
                         children: [
@@ -577,7 +683,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                           SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'Upload clear images of affected crops for better diagnosis',
+                              'Description and image URL are required. Upload additional image file for better diagnosis',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.black87,

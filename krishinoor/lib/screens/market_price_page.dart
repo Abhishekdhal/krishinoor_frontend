@@ -123,7 +123,7 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
                           Container(
                             padding: EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withAlpha(51),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(Icons.store, color: Colors.white, size: 24),
@@ -143,7 +143,7 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
                               Text(
                                 'Compare prices & save more',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withAlpha(230),
                                   fontSize: 13,
                                 ),
                               ),
@@ -247,7 +247,7 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -376,9 +376,9 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: highlight
               ? BoxDecoration(
-                  color: accentColor.withOpacity(0.15),
+                  color: accentColor.withAlpha(38),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: accentColor.withOpacity(0.4)),
+                  border: Border.all(color: accentColor.withAlpha(102)),
                 )
               : null,
           child: Text(
@@ -404,7 +404,7 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -503,7 +503,7 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
                     ),
                     gradient: LinearGradient(
                       colors: [
-                        _getColorForIndex(idx).withOpacity(0.8),
+                        _getColorForIndex(idx).withAlpha(204),
                         _getColorForIndex(idx),
                       ],
                     ),
@@ -511,8 +511,8 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
                       show: true,
                       gradient: LinearGradient(
                         colors: [
-                          _getColorForIndex(idx).withOpacity(0.2),
-                          _getColorForIndex(idx).withOpacity(0.05),
+                          _getColorForIndex(idx).withAlpha(51),
+                          _getColorForIndex(idx).withAlpha(13),
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,

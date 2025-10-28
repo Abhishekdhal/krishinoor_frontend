@@ -177,7 +177,7 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withAlpha(51),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(Icons.notifications_active, color: Colors.white, size: 24),
@@ -197,7 +197,7 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                             Text(
                               l10n.latestUpdates,
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.white.withAlpha(230),
                                 fontSize: 13,
                               ),
                             ),
@@ -294,7 +294,7 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -321,7 +321,7 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                         gradient: LinearGradient(
                           colors: [
                             notice["color"],
-                            (notice["color"] as Color).withOpacity(0.8),
+                            (notice["color"] as Color).withAlpha(204),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(14),
@@ -342,7 +342,7 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: (notice["color"] as Color).withOpacity(0.15),
+                                  color: (notice["color"] as Color).withAlpha(38),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -483,7 +483,7 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                             gradient: LinearGradient(
                               colors: [
                                 notice["color"],
-                                (notice["color"] as Color).withOpacity(0.8),
+                                (notice["color"] as Color).withAlpha(204),
                               ],
                             ),
                             borderRadius: BorderRadius.circular(16),
@@ -502,7 +502,7 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(
-                                  color: (notice["color"] as Color).withOpacity(0.15),
+                                  color: (notice["color"] as Color).withAlpha(38),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
@@ -562,9 +562,9 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4CAF50).withOpacity(0.1),
+                        color: const Color(0xFF4CAF50).withAlpha(26),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF4CAF50).withOpacity(0.2)),
+                        border: Border.all(color: const Color(0xFF4CAF50).withAlpha(51)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

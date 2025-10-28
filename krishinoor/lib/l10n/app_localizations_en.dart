@@ -437,4 +437,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notice5Text =>
       'Cabinet approved revised interest rate for FY 2025-26 with existing 1.5% interest subsidy (ISS).';
+
+  @override
+  String get profileLoadFailed => 'Failed to load profile';
+
+  @override
+  String get profileUpdateFailed => 'Failed to update profile';
+
+  @override
+  String get krishiMitraSystemPrompt =>
+      'You are Krishi Mitra 🌱, a multilingual AI farming assistant. Farmers may upload crop/soil/pest images. Analyze and give advice in Hindi, Punjabi, Odia, or English. Be helpful, practical, and encouraging.';
 }

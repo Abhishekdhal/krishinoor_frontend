@@ -1,8 +1,15 @@
+// lib/screens/splash_screen.dart
+
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; 
 import 'home_page.dart';
 import 'login_page.dart';
+
+// Helper for Secure Storage, mirrored from api_service.dart for encapsulation
+const _storage = FlutterSecureStorage();
+const String _kTokenKey = 'jwt_token';
+Future<String?> _getToken() => _storage.read(key: _kTokenKey);
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -49,13 +56,21 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
+    
+    // 💡 REVISED: Call the async check immediately, but allow animation time.
+    _checkSessionAndNavigate(const Duration(seconds: 4));
+  }
+  
+  // 💡 NEW HELPER FUNCTION for clarity
+  Future<void> _checkSessionAndNavigate(Duration delay) async {
+    await Future.delayed(delay); // Wait for animation delay
 
-    // Navigate after animation
-    Future.delayed(const Duration(seconds: 4), () async {
-      if (!mounted) return;
+    if (!mounted) return;
 
-      final currentUser = Supabase.instance.client.auth.currentUser;
-      final isLoggedIn = currentUser != null;
+    try {
+      // Check for the stored JWT token
+      final token = await _getToken();
+      final isLoggedIn = token != null && token.isNotEmpty;
 
       if (!mounted) return;
       Navigator.pushReplacement(
@@ -64,7 +79,15 @@ class _SplashScreenState extends State<SplashScreen>
           builder: (_) => isLoggedIn ? const HomePage() : const LoginPage(),
         ),
       );
-    });
+    } catch (e) {
+      debugPrint("Error reading token/navigating: $e");
+      // Fallback: If secure storage fails (the 'NotInitializedError'), default to login.
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    }
   }
 
   @override
@@ -94,7 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         ),
         child: Stack(
-          children: [
+          children:[
             // Decorative elements
             Positioned(
               top: 60,
@@ -109,7 +132,7 @@ class _SplashScreenState extends State<SplashScreen>
                     color: const Color(0xFFFFD700),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.yellow.withOpacity(0.5),
+                        color: Colors.yellow.withAlpha(128),
                         blurRadius: 40,
                         spreadRadius: 10,
                       ),
@@ -133,7 +156,7 @@ class _SplashScreenState extends State<SplashScreen>
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        const Color(0xFF9ACD32).withOpacity(0.3),
+                        const Color(0xFF9ACD32).withAlpha(76),
                         const Color(0xFF6B8E23),
                         const Color(0xFF556B2F),
                       ],
@@ -169,13 +192,13 @@ class _SplashScreenState extends State<SplashScreen>
                                 borderRadius: BorderRadius.circular(40),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withAlpha(76),
                                     blurRadius: 30,
                                     offset: const Offset(0, 15),
                                   ),
                                   BoxShadow(
                                     color: const Color(0xFF2ecc71)
-                                        .withOpacity(0.4),
+                                        .withAlpha(102),
                                     blurRadius: 40,
                                     spreadRadius: 5,
                                   ),
@@ -235,11 +258,11 @@ class _SplashScreenState extends State<SplashScreen>
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withAlpha(230),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withAlpha(26),
                             blurRadius: 10,
                             offset: const Offset(0, 5),
                           ),
@@ -266,7 +289,7 @@ class _SplashScreenState extends State<SplashScreen>
                             'LOADING',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withAlpha(204),
                               letterSpacing: 3,
                               fontWeight: FontWeight.w400,
                             ),
@@ -277,7 +300,7 @@ class _SplashScreenState extends State<SplashScreen>
                               borderRadius: BorderRadius.circular(10),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
+                                  color: Colors.black.withAlpha(51),
                                   blurRadius: 8,
                                   offset: const Offset(0, 4),
                                 ),
@@ -287,7 +310,7 @@ class _SplashScreenState extends State<SplashScreen>
                               borderRadius: BorderRadius.circular(10),
                               child: LinearProgressIndicator(
                                 backgroundColor:
-                                    Colors.white.withOpacity(0.3),
+                                    Colors.white.withAlpha(76),
                                 valueColor:
                                     const AlwaysStoppedAnimation<Color>(
                                   Color(0xFF2ecc71),
@@ -310,12 +333,12 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-// Custom painter for wheat pattern at bottom
+// Custom painter for wheat pattern at bottom (unchanged)
 class WheatPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFDAA520).withOpacity(0.3)
+      ..color = const Color(0xFFDAA520).withAlpha(76)
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
 
@@ -330,14 +353,14 @@ class WheatPatternPainter extends CustomPainter {
         Offset(x - 3, size.height - 35),
         2,
         Paint()
-          ..color = const Color(0xFFDAA520).withOpacity(0.5)
+          ..color = const Color(0xFFDAA520).withAlpha(128)
           ..style = PaintingStyle.fill,
       );
       canvas.drawCircle(
         Offset(x + 3, size.height - 35),
         2,
         Paint()
-          ..color = const Color(0xFFDAA520).withOpacity(0.5)
+          ..color = const Color(0xFFDAA520).withAlpha(128)
           ..style = PaintingStyle.fill,
       );
 
@@ -348,347 +371,3 @@ class WheatPatternPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
-
-
-
-
-
-// import 'dart:async';
-// import 'package:flutter/material.dart';
-// import 'package:supabase_flutter/supabase_flutter.dart';
-// import 'home_page.dart';
-// import 'login_page.dart';
-
-// class SplashScreen extends StatefulWidget {
-//   const SplashScreen({super.key});
-
-//   @override
-//   State<SplashScreen> createState() => _SplashScreenState();
-// }
-
-// class _SplashScreenState extends State<SplashScreen>
-//     with SingleTickerProviderStateMixin {
-//   late AnimationController _controller;
-//   late Animation<double> _fadeAnimation;
-//   late Animation<double> _scaleAnimation;
-
-//   @override
-//   void initState() {
-//     super.initState();
-
-//     _controller = AnimationController(
-//       vsync: this,
-//       duration: const Duration(milliseconds: 1500),
-//     );
-
-//     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-//       CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-//     );
-
-//     _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-//       CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-//     );
-
-//     _controller.forward();
-
-//     // Navigate after animation
-//     Future.delayed(const Duration(seconds: 3), () async {
-//       if (!mounted) return;
-
-//       final currentUser = Supabase.instance.client.auth.currentUser;
-//       final isLoggedIn = currentUser != null;
-
-//       if (!mounted) return;
-//       Navigator.pushReplacement(
-//         context,
-//         MaterialPageRoute(
-//           builder: (_) => isLoggedIn ? const HomePage() : const LoginPage(),
-//         ),
-//       );
-//     });
-//   }
-
-//   @override
-//   void dispose() {
-//     _controller.dispose();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: Container(
-//         width: double.infinity,
-//         height: double.infinity,
-//         decoration: const BoxDecoration(
-//           gradient: LinearGradient(
-//             begin: Alignment.topCenter,
-//             end: Alignment.bottomCenter,
-//             colors: [
-//               Color(0xFF0a192f),
-//               Color(0xFF112240),
-//               Color(0xFF1a365d),
-//             ],
-//           ),
-//         ),
-//         child: FadeTransition(
-//           opacity: _fadeAnimation,
-//           child: ScaleTransition(
-//             scale: _scaleAnimation,
-//             child: Column(
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children: [
-//                 // Your Logo
-//                 Container(
-//                   width: 160,
-//                   height: 160,
-//                   decoration: BoxDecoration(
-//                     gradient: const LinearGradient(
-//                       begin: Alignment.topLeft,
-//                       end: Alignment.bottomRight,
-//                       colors: [
-//                         Color(0xFF2ecc71),
-//                         Color(0xFF27ae60),
-//                         Color(0xFF229954),
-//                       ],
-//                     ),
-//                     borderRadius: BorderRadius.circular(35),
-//                     boxShadow: [
-//                       BoxShadow(
-//                         color: Colors.black.withOpacity(0.6),
-//                         blurRadius: 50,
-//                         offset: const Offset(0, 25),
-//                       ),
-//                       BoxShadow(
-//                         color: const Color(0xFF2ecc71).withOpacity(0.4),
-//                         blurRadius: 40,
-//                         spreadRadius: 5,
-//                       ),
-//                     ],
-//                   ),
-//                   child: ClipRRect(
-//                     borderRadius: BorderRadius.circular(35),
-//                     child: Image.asset(
-//                       'assets/images/logo.png', // Your logo here
-//                       width: 160,
-//                       height: 160,
-//                       fit: BoxFit.cover,
-//                     ),
-//                   ),
-//                 ),
-//                 const SizedBox(height: 50),
-
-//                 // App Name
-//                 ShaderMask(
-//                   shaderCallback: (bounds) => const LinearGradient(
-//                     colors: [
-//                       Color(0xFF2ecc71),
-//                       Color(0xFF27ae60),
-//                       Color(0xFF3498db),
-//                     ],
-//                   ).createShader(bounds),
-//                   child: const Text(
-//                     'KRISHINOOR',
-//                     style: TextStyle(
-//                       fontSize: 56,
-//                       fontWeight: FontWeight.bold,
-//                       color: Colors.white,
-//                       letterSpacing: 7,
-//                     ),
-//                   ),
-//                 ),
-//                 const SizedBox(height: 20),
-
-//                 // Tagline
-//                 Text(
-//                   'Smart Farming Solutions',
-//                   style: TextStyle(
-//                     fontSize: 20,
-//                     color: Colors.white.withOpacity(0.75),
-//                     letterSpacing: 4,
-//                     fontWeight: FontWeight.w300,
-//                   ),
-//                 ),
-//                 const SizedBox(height: 60),
-
-//                 // Loading Indicator
-//                 SizedBox(
-//                   width: 260,
-//                   child: Column(
-//                     children: [
-//                       Text(
-//                         'LOADING',
-//                         style: TextStyle(
-//                           fontSize: 13,
-//                           color: Colors.white.withOpacity(0.5),
-//                           letterSpacing: 3,
-//                           fontWeight: FontWeight.w300,
-//                         ),
-//                       ),
-//                       const SizedBox(height: 18),
-//                       ClipRRect(
-//                         borderRadius: BorderRadius.circular(2),
-//                         child: LinearProgressIndicator(
-//                           backgroundColor: Colors.white.withOpacity(0.1),
-//                           valueColor: const AlwaysStoppedAnimation<Color>(
-//                             Color(0xFF2ecc71),
-//                           ),
-//                           minHeight: 4,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-
-
-
-// // import 'dart:async';
-// // import 'package:flutter/material.dart';
-// // import 'package:supabase_flutter/supabase_flutter.dart'; // Required for auth check
-// // // Corrected imports for files in the same 'screens' directory
-// // import 'home_page.dart'; 
-// // import 'login_page.dart'; 
-
-// // class SplashScreen extends StatefulWidget {
-// //   const SplashScreen({super.key});
-
-// //   @override
-// //   State<SplashScreen> createState() => _SplashScreenState();
-// // }
-
-// // class _SplashScreenState extends State<SplashScreen>
-// //     with TickerProviderStateMixin {
-// //   final String fullText = "KRISHINOOR";
-// //   String currentText = "";
-// //   int _index = 0;
-// //   Timer? _timer;
-
-// //   late final AnimationController _imageController;
-// //   late final Animation<Offset> _imageSlide;
-// //   late final Animation<double> _imageFade;
-
-// //   @override
-// //   void initState() {
-// //     super.initState();
-
-// //     _imageController = AnimationController(
-// //       vsync: this,
-// //       duration: const Duration(milliseconds: 800),
-// //     );
-
-// //     _imageSlide = Tween<Offset>(
-// //       begin: const Offset(0, 0.3),
-// //       end: Offset.zero,
-// //     ).animate(CurvedAnimation(parent: _imageController, curve: Curves.easeOut));
-
-// //     _imageFade = CurvedAnimation(
-// //       parent: _imageController,
-// //       curve: Curves.easeIn,
-// //     );
-
-// //     // Typewriter effect
-// //     _timer = Timer.periodic(const Duration(milliseconds: 150), (timer) {
-// //       if (_index < fullText.length) {
-// //         setState(() {
-// //           currentText += fullText[_index];
-// //           _index++;
-// //         });
-// //       } else {
-// //         timer.cancel();
-// //         _imageController.forward();
-
-// //         // Navigate after short delay
-// //         Future.delayed(const Duration(seconds: 2), () async {
-// //           if (!mounted) return;
-
-// //           // ⭐ Supabase Session Check: Check for an active user session
-// //           final currentUser = Supabase.instance.client.auth.currentUser;
-// //           final isLoggedIn = currentUser != null;
-
-// //           WidgetsBinding.instance.addPostFrameCallback((_) {
-// //             if (!mounted) return;
-// //             Navigator.pushReplacement(
-// //               context,
-// //               MaterialPageRoute(
-// //                 builder: (_) => isLoggedIn ? const HomePage() : const LoginPage(),
-// //               ),
-// //             );
-// //           });
-// //         });
-// //       }
-// //     });
-// //   }
-
-// //   @override
-// //   void dispose() {
-// //     _timer?.cancel();
-// //     _imageController.dispose();
-// //     super.dispose();
-// //   }
-
-// //   @override
-// //   Widget build(BuildContext context) {
-// //     final double textSize = MediaQuery.of(context).size.width * 0.08 + 8;
-
-// //     return Scaffold(
-// //       body: Container(
-// //         width: double.infinity,
-// //         height: double.infinity,
-// //         decoration: const BoxDecoration(
-// //           image: DecorationImage(
-// //             image: AssetImage("assets/images/background.jpeg"), // make sure added in pubspec.yaml
-// //             fit: BoxFit.cover,
-// //           ),
-// //         ),
-// //         child: Column(
-// //           mainAxisAlignment: MainAxisAlignment.center,
-// //           children: [
-// //             // App name typing animation
-// //             Text(
-// //               currentText,
-// //               style: TextStyle(
-// //                 fontSize: textSize,
-// //                 fontWeight: FontWeight.bold,
-// //                 color: Colors.white,
-// //                 letterSpacing: 2,
-// //                 shadows: const [
-// //                   Shadow(
-// //                     blurRadius: 8,
-// //                     color: Colors.black54,
-// //                     offset: Offset(2, 2),
-// //                   ),
-// //                 ],
-// //               ),
-// //               textAlign: TextAlign.center,
-// //             ),
-// //             const SizedBox(height: 30),
-
-// //             // Logo animation
-// //             FadeTransition(
-// //               opacity: _imageFade,
-// //               child: SlideTransition(
-// //                 position: _imageSlide,
-// //                 child: Image.asset(
-// //                   'assets/images/farm2.png', // make sure added in pubspec.yaml
-// //                   width: 160,
-// //                   height: 160,
-// //                   fit: BoxFit.contain,
-// //                 ),
-// //               ),
-// //             ),
-// //           ],
-// //         ),
-// //       ),
-// //     );
-// //   }
-// // }

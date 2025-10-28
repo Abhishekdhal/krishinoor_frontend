@@ -1,7 +1,10 @@
+// lib/screens/feedback_page.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../services/supabase_service.dart';
+// Note: We renamed supabase_service.dart to api_service.dart
+import '../services/api_service.dart'; 
 import '../l10n/app_localizations.dart';
 
 class FeedbackPage extends StatefulWidget {
@@ -14,7 +17,9 @@ class FeedbackPage extends StatefulWidget {
 class _FeedbackPageState extends State<FeedbackPage> {
   final _nameController = TextEditingController();
   final _messageController = TextEditingController();
-  final SupabaseService supabaseService = SupabaseService();
+  
+  // 💡 MIGRATED: Use the new ApiService class
+  final ApiService apiService = ApiService(); 
 
   File? _selectedImage;
   bool _isSubmitting = false;
@@ -35,7 +40,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(loc.pleaseEnter),
+          content: Text(loc.pleaseEnter), // Assuming loc.pleaseEnter is "Please fill all fields"
           backgroundColor: Colors.red.shade400,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -47,72 +52,99 @@ class _FeedbackPageState extends State<FeedbackPage> {
     setState(() => _isSubmitting = true);
 
     String? imageUrl;
-    if (_selectedImage != null) {
-      imageUrl = await supabaseService.uploadImage(_selectedImage!);
-    }
+    
+    try {
+      // 💡 MIGRATED STEP 1: Replace supabaseService.uploadImage
+      if (_selectedImage != null) {
+        imageUrl = await apiService.uploadImage(_selectedImage!);
+        if (imageUrl == null && _selectedImage != null) {
+             // Handle case where upload failed but file was present
+            throw Exception("Failed to upload image. Please try again.");
+        }
+      }
 
-    await supabaseService.addFeedback(
-      _nameController.text,
-      _messageController.text,
-      imageUrl: imageUrl,
-    );
+      // 💡 MIGRATED STEP 2: Replace supabaseService.addFeedback
+      await apiService.addFeedback(
+        _nameController.text,
+        _messageController.text,
+        imageUrl: imageUrl,
+      );
 
-    setState(() {
-      _isSubmitting = false;
-      _selectedImage = null;
-      _nameController.clear();
-      _messageController.clear();
-    });
+      // --- Success actions ---
+      setState(() {
+        _isSubmitting = false;
+        _selectedImage = null;
+        _nameController.clear();
+        _messageController.clear();
+      });
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        backgroundColor: Colors.white,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                shape: BoxShape.circle,
+      // Show success dialog
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          backgroundColor: Colors.white,
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.check_circle, color: Colors.green.shade700, size: 32),
               ),
-              child: Icon(Icons.check_circle, color: Colors.green.shade700, size: 32),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                loc.thankYou,
-                style: TextStyle(
-                  color: Colors.green.shade700,
-                  fontWeight: FontWeight.bold,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  loc.thankYou,
+                  style: TextStyle(
+                    color: Colors.green.shade700,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
+            ],
+          ),
+          content: Text(
+            loc.thankYouMessage,
+            style: const TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.green.shade700,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () => Navigator.pop(context),
+              child: Text(loc.ok),
             ),
           ],
         ),
-        content: Text(
-          loc.thankYouMessage,
-          style: const TextStyle(fontSize: 16),
+      );
+      
+    } catch (e) {
+      // ⚠️ New Error Handling: Catch exceptions thrown by ApiService
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Submission failed: ${e.toString().replaceFirst('Exception: ', '')}"),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(12),
         ),
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(
-              backgroundColor: Colors.green.shade700,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () => Navigator.pop(context),
-            child: Text(loc.ok),
-          ),
-        ],
-      ),
-    );
+      );
+      debugPrint("Feedback Submission Error: $e");
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -121,9 +153,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      body: Column(
+      // Use CustomScrollView or NestedScrollView if this layout breaks the screen height
+      body: Column( 
         children: [
-          // Curved Header like home page
+          // Curved Header (unchanged)
           Container(
             height: 140,
             decoration: BoxDecoration(
@@ -153,6 +186,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           onPressed: () => Navigator.pop(context),
                         ),
                         const Spacer(),
+                        // Add a placeholder for Admin Feedback link if needed
                       ],
                     ),
                   ),
@@ -181,7 +215,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Welcome card similar to home page
+                    // Welcome card (unchanged)
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -211,7 +245,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.3),
+                                  color: Colors.white.withAlpha(76),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
@@ -238,7 +272,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                       "We'd love to hear from you!",
                                       style: TextStyle(
                                         fontSize: 14,
-                                        color: Colors.white.withOpacity(0.9),
+                                        color: Colors.white.withAlpha(230),
                                       ),
                                     ),
                                   ],
@@ -270,7 +304,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Name Field
+                            // Name Field (unchanged)
                             Text(
                               loc.yourName,
                               style: TextStyle(
@@ -304,7 +338,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
                             const SizedBox(height: 20),
 
-                            // Feedback Field
+                            // Feedback Field (unchanged)
                             Text(
                               loc.yourFeedback,
                               style: TextStyle(
@@ -342,7 +376,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
                             const SizedBox(height: 24),
 
-                            // Image Section
+                            // Image Section (unchanged logic)
                             Text(
                               'Attachment (Optional)',
                               style: TextStyle(
@@ -381,7 +415,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                           shape: BoxShape.circle,
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withOpacity(0.2),
+                                              color: Colors.black.withAlpha(51),
                                               blurRadius: 8,
                                             ),
                                           ],
