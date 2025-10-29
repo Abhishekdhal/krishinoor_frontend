@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
-
 class NoticeBoardPage extends StatefulWidget {
   const NoticeBoardPage({super.key});
-
   @override
   State<NoticeBoardPage> createState() => _NoticeBoardPageState();
 }
-
 class _NoticeBoardPageState extends State<NoticeBoardPage>
     with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
-
-  // Use category codes (not localized labels) for consistent filtering
   final List<Map<String, dynamic>> notices = [
     {
       "id": "notice1",
@@ -61,8 +56,6 @@ class _NoticeBoardPageState extends State<NoticeBoardPage>
       "color": const Color(0xFF00BCD4),
     },
   ];
-
-  // filter codes — use codes not localized strings
   String selectedFilter = "all";
   final List<String> filterCodes = [
     "all",
@@ -72,7 +65,6 @@ class _NoticeBoardPageState extends State<NoticeBoardPage>
     "msp",
     "finance"
   ];
-
   @override
   void initState() {
     super.initState();
@@ -85,21 +77,17 @@ class _NoticeBoardPageState extends State<NoticeBoardPage>
     );
     _controller.forward();
   }
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-
   List<Map<String, dynamic>> get filteredNotices {
     if (selectedFilter == "all") return notices;
     return notices
         .where((notice) => notice["category"] == selectedFilter)
         .toList();
   }
-
-  // Helper to map category code -> localized label
   String _categoryLabel(String code, AppLocalizations l10n) {
     switch (code) {
       case 'scheme':
@@ -116,8 +104,6 @@ class _NoticeBoardPageState extends State<NoticeBoardPage>
         return l10n.filterAll;
     }
   }
-
-  // Helper to get localized filter label from code
   String _filterLabel(String code, AppLocalizations l10n) {
     switch (code) {
       case 'all':
@@ -126,9 +112,6 @@ class _NoticeBoardPageState extends State<NoticeBoardPage>
         return _categoryLabel(code, l10n);
     }
   }
-
-  // Map each notice textKey to AppLocalizations getter.
-  // Add new keys to your .arb files and generated AppLocalizations.
   String _localizedNoticeText(
       Map<String, dynamic> notice, AppLocalizations l10n) {
     switch (notice['textKey']) {
@@ -146,16 +129,13 @@ class _NoticeBoardPageState extends State<NoticeBoardPage>
         return notice['text'] ?? '';
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: Column(
         children: [
-          // Header with gradient
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -175,7 +155,6 @@ class _NoticeBoardPageState extends State<NoticeBoardPage>
               bottom: false,
               child: Column(
                 children: [
-                  // Back button and title
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                     child: Row(
@@ -219,7 +198,6 @@ class _NoticeBoardPageState extends State<NoticeBoardPage>
                       ],
                     ),
                   ),
-                  // Filter chips (localized labels)
                   Container(
                     height: 50,
                     margin: const EdgeInsets.only(bottom: 16),
@@ -230,7 +208,6 @@ class _NoticeBoardPageState extends State<NoticeBoardPage>
                       itemBuilder: (context, index) {
                         final filterCode = filterCodes[index];
                         final isSelected = selectedFilter == filterCode;
-
                         return Padding(
                           padding: const EdgeInsets.only(right: 12),
                           child: GestureDetector(
@@ -272,7 +249,6 @@ class _NoticeBoardPageState extends State<NoticeBoardPage>
               ),
             ),
           ),
-          // Content
           Expanded(
             child: FadeTransition(
               opacity: _fadeAnimation,
@@ -302,13 +278,11 @@ class _NoticeBoardPageState extends State<NoticeBoardPage>
       ),
     );
   }
-
   Widget _buildNoticeCard(BuildContext context, Map<String, dynamic> notice,
       AppLocalizations l10n) {
     final isNew = notice['isNew'] as bool? ?? false;
     final catCode = notice['category'] as String? ?? 'other';
     final text = _localizedNoticeText(notice, l10n);
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -473,12 +447,10 @@ class _NoticeBoardPageState extends State<NoticeBoardPage>
       ),
     );
   }
-
   void _showNoticeDetails(BuildContext context, Map<String, dynamic> notice,
       AppLocalizations l10n) {
     final catCode = notice['category'] as String? ?? 'other';
     final text = _localizedNoticeText(notice, l10n);
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -638,7 +610,6 @@ class _NoticeBoardPageState extends State<NoticeBoardPage>
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          // Handle learn more action
                         },
                         icon: const Icon(Icons.open_in_new),
                         label: Text(l10n.learnMore),

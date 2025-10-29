@@ -1,76 +1,58 @@
-// lib/screens/profile_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// REMOVED: import 'package:supabase_flutter/supabase_flutter.dart';
 import '../l10n/app_localizations.dart';
-import '../main.dart'; // for FarmersApp.setLocale
-import '../services/api_service.dart'; // 💡 NEW: Import the custom API service
-
+import '../main.dart';
+import '../services/api_service.dart';
 class ProfilePage extends StatefulWidget {
-  // NOTE: Initial data via constructor is less necessary now,
-  // as the page fetches data directly. We keep it for safety.
   final String? initialName;
   final String? initialEmail;
   final String? initialPhone;
-
   const ProfilePage({
     super.key,
     this.initialName,
     this.initialEmail,
     this.initialPhone,
   });
-
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
-
 class _ProfilePageState extends State<ProfilePage>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   String? _selectedLanguage;
   bool _isLoading = false;
   bool _isSaving = false;
-
-  // 💡 NEW: Initialize API service
   final ApiService _apiService = ApiService();
-
   late AnimationController _animationController;
   late AnimationController _avatarController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _avatarPulse;
-
   final List<Map<String, String>> languages = [
     {"code": "en", "label": "English", "flag": "🇬🇧"},
     {"code": "hi", "label": "Hindi", "flag": "🇮🇳"},
     {"code": "ml", "label": "Malyalam", "flag": "🇮🇳"},
     {"code": "or", "label": "Odia", "flag": "🇮🇳"},
   ];
-
   @override
   void initState() {
     super.initState();
     _setupAnimations();
     _loadUserData();
   }
-
   void _setupAnimations() {
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-
     _avatarController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -78,7 +60,6 @@ class _ProfilePageState extends State<ProfilePage>
       parent: _animationController,
       curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
     ));
-
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -86,7 +67,6 @@ class _ProfilePageState extends State<ProfilePage>
       parent: _animationController,
       curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
     ));
-
     _scaleAnimation = Tween<double>(
       begin: 0.8,
       end: 1.0,
@@ -94,7 +74,6 @@ class _ProfilePageState extends State<ProfilePage>
       parent: _animationController,
       curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack),
     ));
-
     _avatarPulse = Tween<double>(
       begin: 1.0,
       end: 1.05,
@@ -102,27 +81,17 @@ class _ProfilePageState extends State<ProfilePage>
       parent: _avatarController,
       curve: Curves.easeInOut,
     ));
-
     _animationController.forward();
   }
-
-  /// 💡 MIGRATED: Fetches profile data from Vercel backend and supplements with local data.
   Future<void> _loadUserData() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
-
     try {
-      // 1. Fetch data from Vercel endpoint
       final remoteData = await _apiService.fetchUserProfile();
-
-      // 2. Load local preferences (for language, as it's not server-stored here)
       final prefs = await SharedPreferences.getInstance();
       final savedLang = prefs.getString("language");
-
-      // 3. Update controllers and state
       if (mounted) {
         setState(() {
-          // Use remote data as primary source, fallback to local prefs or initial values
           _nameController.text = remoteData['name'] ??
               prefs.getString("name") ??
               widget.initialName ??
@@ -135,15 +104,12 @@ class _ProfilePageState extends State<ProfilePage>
               prefs.getString("phone") ??
               widget.initialPhone ??
               "";
-
           _selectedLanguage = savedLang ?? "en";
           _isLoading = false;
         });
       }
     } catch (e) {
       debugPrint("Error loading user data from API: $e");
-
-      // Fallback: If API fails, load basic data from SharedPreferences only.
       final prefs = await SharedPreferences.getInstance();
       if (mounted) {
         setState(() {
@@ -156,8 +122,6 @@ class _ProfilePageState extends State<ProfilePage>
           _selectedLanguage = prefs.getString("language") ?? "en";
           _isLoading = false;
         });
-
-        // Show an error snackbar for the API failure
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content:
@@ -170,38 +134,25 @@ class _ProfilePageState extends State<ProfilePage>
       }
     }
   }
-
-  /// 💡 MIGRATED: Updates profile data using Vercel backend.
   Future<void> _saveUserData() async {
     final l10n = AppLocalizations.of(context);
     if (_formKey.currentState!.validate()) {
       if (!mounted) return;
       setState(() => _isSaving = true);
-
       try {
-        // 1. Send update to Vercel endpoint
-        // NOTE: We do not update email here, as it requires special verification flow.
         await _apiService.updateProfile(
           name: _nameController.text.trim(),
           phone: _phoneController.text.trim(),
           language: _selectedLanguage!,
         );
-
-        // 2. Save local preferences (always save local state on success)
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("name", _nameController.text.trim());
-        // Email is excluded from local save here as it wasn't updated via API
         await prefs.setString("phone", _phoneController.text.trim());
         await prefs.setString("language", _selectedLanguage!);
-
-        // 3. Update app locale
         if (_selectedLanguage != null) {
           FarmersApp.setLocale(context, Locale(_selectedLanguage!));
         }
-
-        // 4. Show success message
         if (!mounted) return;
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -234,7 +185,6 @@ class _ProfilePageState extends State<ProfilePage>
             duration: const Duration(seconds: 2),
           ),
         );
-
         Future.delayed(const Duration(milliseconds: 1500), () {
           if (mounted) {
             Navigator.pop(context, true);
@@ -270,7 +220,6 @@ class _ProfilePageState extends State<ProfilePage>
       }
     }
   }
-
   Widget _buildCustomTextField({
     required TextEditingController controller,
     required String labelText,
@@ -279,7 +228,6 @@ class _ProfilePageState extends State<ProfilePage>
     String? Function(String?)? validator,
     bool enabled = true,
   }) {
-    // ... (unchanged)
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
@@ -341,7 +289,6 @@ class _ProfilePageState extends State<ProfilePage>
       ),
     );
   }
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -351,11 +298,9 @@ class _ProfilePageState extends State<ProfilePage>
     _avatarController.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -372,7 +317,6 @@ class _ProfilePageState extends State<ProfilePage>
         child: SafeArea(
           child: Column(
             children: [
-              // Enhanced App Bar
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -415,8 +359,6 @@ class _ProfilePageState extends State<ProfilePage>
                   ],
                 ),
               ),
-
-              // Main Content
               Expanded(
                 child: _isLoading
                     ? Center(
@@ -459,7 +401,6 @@ class _ProfilePageState extends State<ProfilePage>
                                   padding: const EdgeInsets.all(28.0),
                                   child: Column(
                                     children: [
-                                      // Enhanced Profile Avatar
                                       ScaleTransition(
                                         scale: _avatarPulse,
                                         child: Container(
@@ -529,8 +470,6 @@ class _ProfilePageState extends State<ProfilePage>
                                         ),
                                       ),
                                       const SizedBox(height: 36),
-
-                                      // Section Header: PERSONAL INFORMATION
                                       Align(
                                         alignment: Alignment.centerLeft,
                                         child: Text(
@@ -544,8 +483,6 @@ class _ProfilePageState extends State<ProfilePage>
                                         ),
                                       ),
                                       const SizedBox(height: 16),
-
-                                      // Name Field
                                       _buildCustomTextField(
                                         controller: _nameController,
                                         labelText: l10n?.name ?? "Name",
@@ -557,8 +494,6 @@ class _ProfilePageState extends State<ProfilePage>
                                             : null,
                                       ),
                                       const SizedBox(height: 20),
-
-                                      // Email Field (Now disabled/read-only)
                                       _buildCustomTextField(
                                         controller: _emailController,
                                         labelText: l10n?.email ?? "Email",
@@ -566,7 +501,7 @@ class _ProfilePageState extends State<ProfilePage>
                                         keyboardType:
                                             TextInputType.emailAddress,
                                         enabled:
-                                            false, // Email should not be editable without a complex backend flow
+                                            false,
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
                                             return l10n?.email ??
@@ -581,8 +516,6 @@ class _ProfilePageState extends State<ProfilePage>
                                         },
                                       ),
                                       const SizedBox(height: 20),
-
-                                      // Phone Field
                                       _buildCustomTextField(
                                         controller: _phoneController,
                                         labelText: l10n?.phone ?? "Phone",
@@ -595,8 +528,6 @@ class _ProfilePageState extends State<ProfilePage>
                                                 : null,
                                       ),
                                       const SizedBox(height: 32),
-
-                                      // Section Header: PREFERENCES
                                       Align(
                                         alignment: Alignment.centerLeft,
                                         child: Text(
@@ -610,8 +541,6 @@ class _ProfilePageState extends State<ProfilePage>
                                         ),
                                       ),
                                       const SizedBox(height: 16),
-
-                                      // Enhanced Language Dropdown
                                       Container(
                                         decoration: BoxDecoration(
                                           borderRadius:
@@ -707,8 +636,6 @@ class _ProfilePageState extends State<ProfilePage>
                                         ),
                                       ),
                                       const SizedBox(height: 40),
-
-                                      // Enhanced Save Button
                                       Container(
                                         width: double.infinity,
                                         height: 60,

@@ -1,77 +1,56 @@
-// lib/screens/splash_screen.dart
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'home_page.dart';
 import 'login_page.dart';
-
-// Helper for Secure Storage, mirrored from api_service.dart for encapsulation
 const _storage = FlutterSecureStorage();
 const String _kTokenKey = 'jwt_token';
 Future<String?> _getToken() => _storage.read(key: _kTokenKey);
-
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
-
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
-
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _rotateAnimation;
-
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     );
-
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
       ),
     );
-
     _scaleAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.0, 0.8, curve: Curves.elasticOut),
       ),
     );
-
     _rotateAnimation = Tween<double>(begin: -0.5, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.0, 0.8, curve: Curves.easeOut),
       ),
     );
-
     _controller.forward();
-
-    // 💡 REVISED: Call the async check immediately, but allow animation time.
     _checkSessionAndNavigate(const Duration(seconds: 4));
   }
-
-  // 💡 NEW HELPER FUNCTION for clarity
   Future<void> _checkSessionAndNavigate(Duration delay) async {
-    await Future.delayed(delay); // Wait for animation delay
-
+    await Future.delayed(delay);
     if (!mounted) return;
-
     try {
-      // Check for the stored JWT token
       final token = await _getToken();
       final isLoggedIn = token != null && token.isNotEmpty;
-
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -81,7 +60,6 @@ class _SplashScreenState extends State<SplashScreen>
       );
     } catch (e) {
       debugPrint("Error reading token/navigating: $e");
-      // Fallback: If secure storage fails (the 'NotInitializedError'), default to login.
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -89,13 +67,11 @@ class _SplashScreenState extends State<SplashScreen>
       );
     }
   }
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,18 +83,17 @@ class _SplashScreenState extends State<SplashScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF87CEEB), // Sky blue
-              Color(0xFFB0E0E6), // Light sky blue
-              Color(0xFFF0E68C), // Khaki (horizon)
-              Color(0xFF9ACD32), // Yellow green (field)
-              Color(0xFF6B8E23), // Olive drab (field)
+              Color(0xFF87CEEB),
+              Color(0xFFB0E0E6),
+              Color(0xFFF0E68C),
+              Color(0xFF9ACD32),
+              Color(0xFF6B8E23),
             ],
             stops: [0.0, 0.3, 0.5, 0.7, 1.0],
           ),
         ),
         child: Stack(
           children: [
-            // Decorative elements
             Positioned(
               top: 60,
               right: 40,
@@ -141,8 +116,6 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
             ),
-
-            // Bottom field decoration
             Positioned(
               bottom: 0,
               left: 0,
@@ -168,15 +141,12 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
             ),
-
-            // Main content
             Center(
               child: FadeTransition(
                 opacity: _fadeAnimation,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Logo with clear white background
                     AnimatedBuilder(
                       animation: _controller,
                       builder: (context, child) {
@@ -222,14 +192,12 @@ class _SplashScreenState extends State<SplashScreen>
                       },
                     ),
                     const SizedBox(height: 40),
-
-                    // App Name with farming colors
                     ShaderMask(
                       shaderCallback: (bounds) => const LinearGradient(
                         colors: [
-                          Color(0xFF2ecc71), // Green
-                          Color(0xFF27ae60), // Dark green
-                          Color(0xFF6B8E23), // Olive
+                          Color(0xFF2ecc71),
+                          Color(0xFF27ae60),
+                          Color(0xFF6B8E23),
                         ],
                       ).createShader(bounds),
                       child: const Text(
@@ -250,8 +218,6 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
                     const SizedBox(height: 15),
-
-                    // Tagline
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
@@ -279,8 +245,6 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
                     const SizedBox(height: 60),
-
-                    // Loading Indicator
                     SizedBox(
                       width: 240,
                       child: Column(
@@ -330,8 +294,6 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
-
-// Custom painter for wheat pattern at bottom (unchanged)
 class WheatPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -339,14 +301,10 @@ class WheatPatternPainter extends CustomPainter {
       ..color = const Color(0xFFDAA520).withAlpha(76)
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
-
-    // Draw wheat stalks
     for (double x = 0; x < size.width; x += 30) {
       final path = Path();
       path.moveTo(x, size.height);
       path.lineTo(x, size.height - 40);
-
-      // Wheat grain
       canvas.drawCircle(
         Offset(x - 3, size.height - 35),
         2,
@@ -361,11 +319,9 @@ class WheatPatternPainter extends CustomPainter {
           ..color = const Color(0xFFDAA520).withAlpha(128)
           ..style = PaintingStyle.fill,
       );
-
       canvas.drawPath(path, paint);
     }
   }
-
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

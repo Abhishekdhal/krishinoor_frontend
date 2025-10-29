@@ -4,33 +4,27 @@ import 'package:http/http.dart' as http;
 import '../l10n/app_localizations.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 class WeatherPage extends StatefulWidget {
   const WeatherPage({super.key});
-
   @override
   State<WeatherPage> createState() => _WeatherPageState();
 }
-
 class _WeatherPageState extends State<WeatherPage>
     with TickerProviderStateMixin {
   String? city;
   String apiKey = "2f184182c9504a3092a115647251509";
   Map<String, dynamic>? weatherData;
   String? errorMessage;
-
   late AnimationController _animationController;
   late AnimationController _cardAnimationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _getCurrentLocationAndFetchWeather();
   }
-
   void _initializeAnimations() {
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1000),
@@ -40,7 +34,6 @@ class _WeatherPageState extends State<WeatherPage>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -48,7 +41,6 @@ class _WeatherPageState extends State<WeatherPage>
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -57,14 +49,12 @@ class _WeatherPageState extends State<WeatherPage>
       curve: Curves.elasticOut,
     ));
   }
-
   @override
   void dispose() {
     _animationController.dispose();
     _cardAnimationController.dispose();
     super.dispose();
   }
-
   Future<void> _getCurrentLocationAndFetchWeather() async {
     try {
       final permission = await Geolocator.checkPermission();
@@ -77,14 +67,12 @@ class _WeatherPageState extends State<WeatherPage>
           return;
         }
       }
-
       if (permission == LocationPermission.deniedForever) {
         setState(() {
           errorMessage = "Location permission denied forever";
         });
         return;
       }
-
       final position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
       fetchWeather(position.latitude, position.longitude);
@@ -94,13 +82,11 @@ class _WeatherPageState extends State<WeatherPage>
       });
     }
   }
-
   Future<void> fetchWeather(double latitude, double longitude) async {
     final url =
         "http://api.weatherapi.com/v1/forecast.json?key=$apiKey&q=$latitude,$longitude&days=7&aqi=no&alerts=no";
     try {
       final response = await http.get(Uri.parse(url));
-
       if (response.statusCode == 200) {
         setState(() {
           weatherData = json.decode(response.body);
@@ -119,13 +105,11 @@ class _WeatherPageState extends State<WeatherPage>
       });
     }
   }
-
   String getFarmingTipFromData(
       Map<String, dynamic> data, AppLocalizations l10n) {
     final condition = data['condition']['text'].toString().toLowerCase();
     final temp = data['temp_c'] ?? data['avgtemp_c'] ?? 0;
     final humidity = data['humidity'] ?? data['avghumidity'] ?? 60;
-
     if (condition.contains("rain")) {
       return l10n.farmingTip_rain;
     } else if (condition.contains("sunny") || condition.contains("clear")) {
@@ -142,14 +126,11 @@ class _WeatherPageState extends State<WeatherPage>
       return l10n.farmingTip_normal;
     }
   }
-
   Color _getGradientColor() {
     if (weatherData == null) return const Color(0xFF4facfe);
-
     final condition =
         weatherData!['current']['condition']['text'].toLowerCase();
     final isDay = weatherData!['current']['is_day'] == 1;
-
     if (condition.contains('rain') || condition.contains('storm')) {
       return isDay ? const Color(0xFF536976) : const Color(0xFF292E49);
     } else if (condition.contains('cloud')) {
@@ -161,11 +142,9 @@ class _WeatherPageState extends State<WeatherPage>
     }
     return isDay ? const Color(0xFF4facfe) : const Color(0xFF434343);
   }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -205,25 +184,18 @@ class _WeatherPageState extends State<WeatherPage>
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
                             children: [
-                              // Current Weather Card
                               SlideTransition(
                                 position: _slideAnimation,
                                 child: _buildCurrentWeatherCard(l10n),
                               ),
                               const SizedBox(height: 24),
-
-                              // Weather Details Grid
                               SlideTransition(
                                 position: _slideAnimation,
                                 child: _buildWeatherDetailsGrid(),
                               ),
                               const SizedBox(height: 24),
-
-                              // 7-Day Forecast
                               _buildForecastSection(l10n),
                               const SizedBox(height: 24),
-
-                              // Hourly Forecast
                               _buildHourlyForecastSection(l10n),
                               const SizedBox(height: 100),
                             ],
@@ -237,7 +209,6 @@ class _WeatherPageState extends State<WeatherPage>
       ),
     );
   }
-
   Widget _buildLoadingState() {
     return Center(
       child: errorMessage != null
@@ -304,7 +275,6 @@ class _WeatherPageState extends State<WeatherPage>
             ),
     );
   }
-
   Widget _buildCurrentWeatherCard(AppLocalizations l10n) {
     return Container(
       width: double.infinity,
@@ -333,7 +303,6 @@ class _WeatherPageState extends State<WeatherPage>
       ),
       child: Column(
         children: [
-          // Location
           Text(
             weatherData!['location']['name'],
             style: const TextStyle(
@@ -351,13 +320,10 @@ class _WeatherPageState extends State<WeatherPage>
             ),
           ),
           const SizedBox(height: 20),
-
-          // Weather Icon and Temperature
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Weather Icon
               Container(
                 width: 100,
                 height: 100,
@@ -376,8 +342,6 @@ class _WeatherPageState extends State<WeatherPage>
                 ),
               ),
               const SizedBox(width: 20),
-
-              // Temperature
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -402,10 +366,7 @@ class _WeatherPageState extends State<WeatherPage>
               ),
             ],
           ),
-
           const SizedBox(height: 20),
-
-          // Feels like temperature
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
@@ -424,7 +385,6 @@ class _WeatherPageState extends State<WeatherPage>
       ),
     );
   }
-
   Widget _buildWeatherDetailsGrid() {
     return GridView.count(
       crossAxisCount: 2,
@@ -461,7 +421,6 @@ class _WeatherPageState extends State<WeatherPage>
       ],
     );
   }
-
   Widget _buildWeatherDetailCard(
       String title, String value, IconData icon, Color color) {
     return Container(
@@ -502,7 +461,6 @@ class _WeatherPageState extends State<WeatherPage>
       ),
     );
   }
-
   Widget _buildForecastSection(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -529,7 +487,6 @@ class _WeatherPageState extends State<WeatherPage>
               final icon = day['day']['condition']['icon'];
               final maxTemp = day['day']['maxtemp_c'].round();
               final minTemp = day['day']['mintemp_c'].round();
-
               return Container(
                 width: 160,
                 margin: const EdgeInsets.only(right: 16),
@@ -615,7 +572,6 @@ class _WeatherPageState extends State<WeatherPage>
       ],
     );
   }
-
   Widget _buildHourlyForecastSection(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -643,7 +599,6 @@ class _WeatherPageState extends State<WeatherPage>
               final time = hour['time'].toString().split(" ")[1];
               final icon = hour['condition']['icon'];
               final temp = hour['temp_c'].round();
-
               return Container(
                 width: 80,
                 margin: const EdgeInsets.only(right: 12),
@@ -692,11 +647,9 @@ class _WeatherPageState extends State<WeatherPage>
       ],
     );
   }
-
   String _formatDate(String date) {
     final DateTime dateTime = DateTime.parse(date);
     final now = DateTime.now();
-
     if (dateTime.day == now.day) {
       return "Today";
     } else if (dateTime.day == now.day + 1) {

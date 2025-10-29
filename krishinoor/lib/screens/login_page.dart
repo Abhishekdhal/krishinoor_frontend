@@ -1,59 +1,48 @@
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_localizations.dart';
-import '../main.dart'; 
-import '../services/api_service.dart'; 
+import '../main.dart';
+import '../services/api_service.dart';
 import 'home_page.dart';
 import 'signup_page.dart';
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
-
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
-
 class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String? _selectedLanguage;
   bool _isLoading = false;
   bool _obscurePassword = true;
-
   final ApiService _apiService = ApiService();
-
   late AnimationController _animationController;
   late AnimationController _pulseController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
   late Animation<double> _pulseAnimation;
-
   final List<Map<String, String>> languages = [
     {"code": "en", "label": "English"},
     {"code": "hi", "label": "Hindi"},
     {"code": "ml", "label": "Malyalam"},
     {"code": "or", "label": "Odia"},
   ];
-
   @override
   void initState() {
     super.initState();
     _loadSavedLanguage();
     _setupAnimations();
   }
-
   void _setupAnimations() {
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -61,7 +50,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-
     _slideAnimation = Tween<double>(
       begin: 50.0,
       end: 0.0,
@@ -69,7 +57,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       parent: _animationController,
       curve: Curves.elasticOut,
     ));
-
     _pulseAnimation = Tween<double>(
       begin: 0.95,
       end: 1.05,
@@ -77,49 +64,38 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
-
     _animationController.forward();
   }
-
   Future<void> _loadSavedLanguage() async {
     final prefs = await SharedPreferences.getInstance();
     final savedLangCode = prefs.getString("language");
-
     setState(() {
       _selectedLanguage = savedLangCode;
     });
-
     if (savedLangCode != null) {
       FarmersApp.setLocale(context, Locale(savedLangCode));
     }
   }
-
   Future<void> _login() async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
-
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showCustomSnackBar(l10n.fillAllFields, isError: true);
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
       await _apiService.loginUser(
         _emailController.text,
         _passwordController.text,
       );
-
       final prefs = await SharedPreferences.getInstance();
       if (_selectedLanguage != null) {
         await prefs.setString("language", _selectedLanguage!);
       }
-
       if (!mounted) return;
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (_) => const HomePage()));
-          
     } catch (e) {
       _showCustomSnackBar(l10n.loginFailed, isError: true);
       debugPrint("Login Error: $e");
@@ -127,15 +103,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-
   Future<void> _loginWithGoogle() async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
-
     _showCustomSnackBar("Google Login is not yet configured for Vercel backend.", isError: true);
-    
   }
-
   void _showCustomSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -156,7 +128,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       ),
     );
   }
-
   Widget _buildGradientBackground() {
     return Container(
       decoration: BoxDecoration(
@@ -187,7 +158,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       ),
     );
   }
-
   Widget _buildFloatingElements() {
     return Stack(
       children: [
@@ -234,7 +204,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       ],
     );
   }
-
   Widget _buildCustomTextField({
     required TextEditingController controller,
     required String labelText,
@@ -283,7 +252,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       ),
     );
   }
-
   Widget _buildGradientButton({
     required String text,
     required VoidCallback onPressed,
@@ -353,7 +321,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       ),
     );
   }
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -362,11 +329,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     _pulseController.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       body: Stack(
         children: [
@@ -443,7 +408,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   const SizedBox(height: 16),
-
                                   ShaderMask(
                                     shaderCallback: (bounds) => LinearGradient(
                                       colors: [
@@ -461,7 +425,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-
                                   Text(
                                     l10n.authMessage,
                                     style: TextStyle(
@@ -471,7 +434,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: 20),
-
                                   _buildCustomTextField(
                                     controller: _emailController,
                                     labelText: l10n.email,
@@ -479,7 +441,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                     keyboardType: TextInputType.emailAddress,
                                   ),
                                   const SizedBox(height: 12),
-
                                   _buildCustomTextField(
                                     controller: _passwordController,
                                     labelText: l10n.password,
@@ -498,7 +459,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   const SizedBox(height: 12),
-
                                   Container(
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(12),
@@ -553,7 +513,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   const SizedBox(height: 18),
-
                                   _buildGradientButton(
                                     text: l10n.login,
                                     onPressed: _login,
@@ -561,7 +520,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                     icon: Icons.login_rounded,
                                   ),
                                   const SizedBox(height: 16),
-
                                   Row(
                                     children: [
                                       Expanded(child: Divider(color: Colors.grey.shade400)),
@@ -580,7 +538,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                     ],
                                   ),
                                   const SizedBox(height: 16),
-
                                   Container(
                                     width: double.infinity,
                                     height: 46,
@@ -625,9 +582,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                       ),
                                     ),
                                   ),
-
                                   const SizedBox(height: 20),
-
                                   TextButton(
                                     onPressed: () {
                                       Navigator.pushReplacement(

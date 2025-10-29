@@ -4,15 +4,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter/foundation.dart'; // For kDebugMode
-
-// 💡 Import the custom API service for user data and logout
+import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
-
-// IMPORTANT: Replace with your actual path for localization
 import '../l10n/app_localizations.dart';
-
-// Imports for feature pages (using correct relative paths within 'screens')
 import 'ai_bot_page.dart';
 import 'supplements_page.dart';
 import 'weather_page.dart';
@@ -24,8 +18,6 @@ import 'problem_upload_page.dart';
 import 'feedback_page.dart';
 import 'profile_page.dart';
 import 'login_page.dart';
-
-// --- ENHANCED THEME COLORS (UNTOUCHED) ---
 const Color primaryGreen = Color(0xFF2E7D32);
 const Color lightGreen = Color(0xFF66BB6A);
 const Color accentGold = Color(0xFFFFB300);
@@ -34,47 +26,34 @@ const Color cardBackground = Color(0xFFFFFFFF);
 const Color textDark = Color(0xFF1B5E20);
 const Color textLight = Color(0xFF757575);
 const Color shadowColor = Color(0x1A000000);
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
-
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
-  String? _name; // Stores the fetched user name
+  String? _name;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-
-  // 💡 NEW: Initialize API service
   final ApiService _apiService = ApiService();
-
-  // Weather data variables (UNTOUCHED)
   String _temperature = "28°";
   String _weatherDescription = "Mostly Sunny";
   String _location = "Loading...";
   bool _isLoadingWeather = true;
-
-  // NOTE: This line requires dotenv.load() to be called in main.dart
   late final String _apiKey;
-
   @override
   void initState() {
     super.initState();
-    // Initialize API Key safely (from previous fix)
     try {
       _apiKey = dotenv.env['WEATHER_API_KEY']!;
     } catch (e) {
       if (kDebugMode) debugPrint("Failed to read WEATHER_API_KEY: $e");
       _apiKey = "";
     }
-
     _loadUserData();
     _initializeAnimations();
     _loadWeatherData();
   }
-
   void _initializeAnimations() {
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -89,37 +68,27 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     ));
     _animationController.forward();
   }
-
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
   }
-
-  /// 💡 MIGRATED: Loads user data from the Vercel backend via ApiService.
   Future<void> _loadUserData() async {
     try {
-      // Fetch data from the endpoint
       final userData = await _apiService.fetchUserProfile();
-
       if (mounted) {
         setState(() {
-          // 💥 FIX: Read 'name' field, not 'full_name'
           _name = userData['name'] as String?;
         });
       }
-
-      // 💥 FIX: Save the fetched name locally for immediate fallback
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString("name", _name ?? "");
     } catch (e) {
       debugPrint("Error loading user data from API: $e");
-      // Fallback to locally saved name if API call fails
       final prefs = await SharedPreferences.getInstance();
       if (mounted) {
         setState(() {
           _name = prefs.getString("name");
-          // If unauthenticated, force logout
           if (e.toString().contains('Unauthenticated')) {
             _logout();
           }
@@ -127,23 +96,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       }
     }
   }
-
-  /// 💡 RE-ADDED LOGOUT: Logs the user out by calling the ApiService and navigates to LoginPage.
   Future<void> _logout() async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
-
     try {
-      // Call the service to clear the token locally and optionally notify the backend
       await _apiService.logoutUser();
-
-      // Clear all essential SharedPreferences data (token is handled by ApiService, clearing all for safety)
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-
       if (!mounted) return;
-
-      // Navigate to Login Page and clear navigation stack
       Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -153,7 +113,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.logoutFailed), // Use localized text
+            content: Text(l10n.logoutFailed),
             backgroundColor: Colors.red.shade400,
             behavior: SnackBarBehavior.floating,
           ),
@@ -161,8 +121,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       }
     }
   }
-
-  /// Loads weather data from WeatherAPI using location (UNCHANGED logic)
   Future<void> _loadWeatherData() async {
     if (_apiKey.isEmpty) {
       if (kDebugMode)
@@ -170,22 +128,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       if (mounted) setState(() => _isLoadingWeather = false);
       return;
     }
-    // ... (rest of the weather loading logic using _apiKey)
     try {
       final prefs = await SharedPreferences.getInstance();
-
-      // Try to get cached weather data first
       final cachedTemp = prefs.getString('cached_temperature');
       final cachedDesc = prefs.getString('cached_weather_description');
       final cachedLocation = prefs.getString('cached_location');
       final lastUpdate = prefs.getInt('weather_last_update') ?? 0;
       final currentTime = DateTime.now().millisecondsSinceEpoch;
-
-      // If cache is less than 30 minutes old, use it
       if (cachedTemp != null &&
           cachedDesc != null &&
           (currentTime - lastUpdate) < 1800000) {
-        // 30 minutes
         if (mounted) {
           setState(() {
             _temperature = cachedTemp;
@@ -196,8 +148,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         }
         return;
       }
-
-      // Get current location and fetch fresh weather data
       await _getCurrentLocationAndFetchWeather();
     } catch (e) {
       debugPrint("Weather loading error: $e");
@@ -211,52 +161,37 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       }
     }
   }
-
-  /// Get current location and fetch weather data (UNCHANGED logic)
   Future<void> _getCurrentLocationAndFetchWeather() async {
     try {
-      // Check location permission
       final permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         final requestedPermission = await Geolocator.requestPermission();
         if (requestedPermission == LocationPermission.denied) {
-          // Use default location if permission denied
           await _fetchWeatherFromAPI("Bhubaneswar");
           return;
         }
       }
-
       if (permission == LocationPermission.deniedForever) {
-        // Use default location if permission denied forever
         await _fetchWeatherFromAPI("Bhubaneswar");
         return;
       }
-
-      // Get current position
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-
-      // Fetch weather using coordinates
       await _fetchWeatherFromAPI("${position.latitude},${position.longitude}");
     } catch (e) {
       debugPrint("Location error: $e");
-      // Fallback to default city
       await _fetchWeatherFromAPI("Bhubaneswar");
     }
   }
-
-  /// Fetch weather data from WeatherAPI (UNCHANGED logic)
   Future<void> _fetchWeatherFromAPI(String query) async {
     try {
       final url =
           "http://api.weatherapi.com/v1/current.json?key=$_apiKey&q=$query";
       final response = await http
           .get(Uri.parse(url), headers: {'User-Agent': 'Krishinoor/1.0'});
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
         if (mounted) {
           setState(() {
             _temperature = "${data['current']['temp_c'].round()}°";
@@ -265,8 +200,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             _isLoadingWeather = false;
           });
         }
-
-        // Cache the data
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('cached_temperature', _temperature);
         await prefs.setString(
@@ -290,8 +223,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       }
     }
   }
-
-  // --- Enhanced Feature Tile Widget (UNCHANGED) ---
   Widget _buildFeatureTile(String name, IconData icon, Widget page,
       BuildContext context, int index) {
     return AnimatedBuilder(
@@ -353,7 +284,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Icon with gradient background
                         Container(
                           width: 64,
                           height: 64,
@@ -379,7 +309,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        // Feature name
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Text(
@@ -406,14 +335,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       },
     );
   }
-
-  // --- Welcome Header Widget ---
   Widget _buildWelcomeHeader(AppLocalizations l10n) {
-    // 💥 FIX: Determine the display name once, using the fetched _name,
-    // falling back to localized 'farmer' if the name is null or empty.
     final displayUser =
         (_name != null && _name!.isNotEmpty) ? _name! : l10n.farmer;
-
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 20, 20, 10),
       padding: const EdgeInsets.all(20),
@@ -434,10 +358,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
       child: Row(
         children: [
-          // Profile Avatar
           InkWell(
             onTap: () async {
-              // Reload user data after returning from ProfilePage
               final updated = await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ProfilePage()),
@@ -468,13 +390,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
           ),
           const SizedBox(width: 16),
-          // Welcome Text
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.hello(displayUser), // This line uses the fixed variable
+                  l10n.hello(displayUser),
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -492,33 +413,27 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ],
             ),
           ),
-          // 💡 RE-ADDED: Logout Button
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: Colors.white),
-            onPressed: _logout, // Calls the re-added _logout function
+            onPressed: _logout,
           ),
         ],
       ),
     );
   }
-
-  // --- Compact Weather and Market Row (UNCHANGED) ---
   Widget _buildWeatherAndMarketRow() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
         children: [
-          // Weather Card - Compact & Clickable
           Expanded(
             flex: 2,
             child: InkWell(
               onTap: () async {
-                // Navigate to Weather Page
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const WeatherPage()),
                 );
-                // Refresh weather data when returning from weather page
                 if (result == true || result == null) {
                   _loadWeatherData();
                 }
@@ -546,7 +461,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ),
                 child: Row(
                   children: [
-                    // Temperature and Weather Info
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -597,7 +511,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ],
                       ),
                     ),
-                    // Weather Icon
                     Container(
                       width: 50,
                       height: 50,
@@ -626,12 +539,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
           ),
           const SizedBox(width: 12),
-          // Market Alert Card - Compact
           Expanded(
             flex: 1,
             child: InkWell(
               onTap: () {
-                // Navigate to Market Price Page
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const MarketPricePage()),
@@ -692,8 +603,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
     );
   }
-
-  // Helper method to get appropriate weather icon (UNCHANGED)
   IconData _getWeatherIcon(String description) {
     final lowerDesc = description.toLowerCase();
     if (lowerDesc.contains('sunny') || lowerDesc.contains('clear')) {
@@ -707,16 +616,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     } else if (lowerDesc.contains('snow')) {
       return Icons.ac_unit;
     } else {
-      return Icons.wb_sunny; // default
+      return Icons.wb_sunny;
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final screenWidth = MediaQuery.of(context).size.width;
-
-    // Define the list of features for the GridView with better icons
     final List<Map<String, dynamic>> features = [
       {
         "name": l10n.supplements,
@@ -764,12 +670,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         "page": const FeedbackPage()
       },
     ];
-
     return Scaffold(
       backgroundColor: backgroundWhite,
       body: CustomScrollView(
         slivers: [
-          // Custom App Bar - Compact
           SliverAppBar(
             expandedHeight: 110,
             floating: false,
@@ -793,7 +697,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: 15),
-                    // Logo with white circular background
                     Container(
                       width: 50,
                       height: 50,
@@ -817,7 +720,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    // App Name - Centered
                     Text(
                       l10n.appTitle,
                       style: TextStyle(
@@ -838,22 +740,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ),
               ),
             ),
-            // Remove default title since we have custom layout
             title: Container(),
             centerTitle: true,
           ),
-
-          // Main Content
           SliverToBoxAdapter(
             child: Column(
               children: [
-                // Welcome Header
                 _buildWelcomeHeader(l10n),
-
-                // Weather and Market Row
                 _buildWeatherAndMarketRow(),
-
-                // Section Title
                 Container(
                   margin: const EdgeInsets.fromLTRB(20, 20, 20, 10),
                   alignment: Alignment.centerLeft,
@@ -866,8 +760,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-
-                // Features Grid
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   child: GridView.builder(
@@ -892,8 +784,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     },
                   ),
                 ),
-
-                const SizedBox(height: 100), // Space for FAB
+                const SizedBox(height: 100),
               ],
             ),
           ),

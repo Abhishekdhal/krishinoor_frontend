@@ -1,33 +1,26 @@
-// lib/screens/problem_upload_page.dart
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../l10n/app_localizations.dart';
 import '../services/api_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 class ProblemUploadPage extends StatefulWidget {
   const ProblemUploadPage({super.key});
-
   @override
   State<ProblemUploadPage> createState() => _ProblemUploadPageState();
 }
-
 class _ProblemUploadPageState extends State<ProblemUploadPage>
     with TickerProviderStateMixin {
   File? _image;
   final picker = ImagePicker();
   final TextEditingController _descController = TextEditingController();
   final TextEditingController _imageUrlController =
-      TextEditingController(); // NEW: Image URL controller
+      TextEditingController();
   bool _loading = false;
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
-
   final ApiService _apiService = ApiService();
   final _storage = FlutterSecureStorage();
-
   @override
   void initState() {
     super.initState();
@@ -40,15 +33,13 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
     );
     _controller.forward();
   }
-
   @override
   void dispose() {
     _controller.dispose();
     _descController.dispose();
-    _imageUrlController.dispose(); // NEW: Dispose URL controller
+    _imageUrlController.dispose();
     super.dispose();
   }
-
   Future<void> pickImage(ImageSource source) async {
     final pickedFile = await picker.pickImage(source: source);
     if (pickedFile != null) {
@@ -57,9 +48,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
       });
     }
   }
-
   Future<void> uploadImage(AppLocalizations l10n) async {
-    // Validation
     if (_descController.text.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -67,7 +56,6 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
       );
       return;
     }
-
     if (_imageUrlController.text.isEmpty && _image == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,9 +65,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
       );
       return;
     }
-
     setState(() => _loading = true);
-
     try {
       final userId = await _storage.read(key: 'user_email');
       if (userId == null) {
@@ -89,7 +75,6 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
         );
         return;
       }
-
       await _apiService.reportProblem(
         description: _descController.text,
         imageFile: _image,
@@ -97,9 +82,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
             ? _imageUrlController.text
             : null,
       );
-
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -112,7 +95,6 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
           backgroundColor: Color(0xFF4CAF50),
         ),
       );
-
       setState(() {
         _image = null;
         _descController.clear();
@@ -129,7 +111,6 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
       setState(() => _loading = false);
     }
   }
-
   void _showImageSourceDialog(AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
@@ -188,7 +169,6 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
       ),
     );
   }
-
   Widget _buildSourceOption({
     required IconData icon,
     required String label,
@@ -229,16 +209,13 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: Column(
         children: [
-          // Header with gradient
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -300,7 +277,6 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
               ),
             ),
           ),
-          // Content
           Expanded(
             child: FadeTransition(
               opacity: _fadeAnimation,
@@ -309,7 +285,6 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Description Card
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -384,8 +359,6 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
                       ),
                     ),
                     SizedBox(height: 20),
-
-                    // NEW: Image URL Card
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -477,8 +450,6 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
                       ),
                     ),
                     SizedBox(height: 20),
-
-                    // Image Upload Card (Modified - Optional)
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -660,8 +631,6 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
                       ),
                     ),
                     SizedBox(height: 24),
-
-                    // Upload Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -702,8 +671,6 @@ class _ProblemUploadPageState extends State<ProblemUploadPage>
                       ),
                     ),
                     SizedBox(height: 16),
-
-                    // Info Card
                     Container(
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(

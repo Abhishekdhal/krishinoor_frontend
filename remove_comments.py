@@ -1,4 +1,3 @@
-
 import re
 import sys
 
@@ -6,14 +5,18 @@ def remove_comments(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # This regex is designed to remove comments from Dart code.
-    # It handles single-line (//) and multi-line (/* */) comments.
-    # It specifically avoids removing URLs (http:// or https://).
-    # It also preserves /// documentation comments.
-    # It also preserves ignore_for_file directives.
-    content = re.sub(r"(?<!https:|http:)//(?!/|\s*ignore_for_file:).*", "", content)
-    content = re.sub(r"/\*[​‌‍‎‏﻿	
-               　  ]*?*/", "", content, flags=re.DOTALL)
+    # Protect URLs by replacing them with placeholders
+    content = content.replace("http://", "__HTTP__")
+    content = content.replace("https://", "__HTTPS__")
+
+    # Remove single-line comments (//)
+    content = re.sub(r"//.*", "", content)
+    # Remove multi-line comments (/* */)
+    content = re.sub(r"/\*.*?\*/", "", content, flags=re.DOTALL)
+
+    # Restore URLs
+    content = content.replace("__HTTP__", "http://")
+    content = content.replace("__HTTPS__", "https://")
 
     # Remove trailing whitespace from lines and extra newlines
     lines = [line.rstrip() for line in content.splitlines()]

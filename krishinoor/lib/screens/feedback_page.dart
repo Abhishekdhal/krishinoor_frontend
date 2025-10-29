@@ -1,29 +1,19 @@
-// lib/screens/feedback_page.dart
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-// Note: We renamed supabase_service.dart to api_service.dart
 import '../services/api_service.dart';
 import '../l10n/app_localizations.dart';
-
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({super.key});
-
   @override
   State<FeedbackPage> createState() => _FeedbackPageState();
 }
-
 class _FeedbackPageState extends State<FeedbackPage> {
   final _nameController = TextEditingController();
   final _messageController = TextEditingController();
-
-  // 💡 MIGRATED: Use the new ApiService class
   final ApiService apiService = ApiService();
-
   File? _selectedImage;
   bool _isSubmitting = false;
-
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) {
@@ -32,16 +22,14 @@ class _FeedbackPageState extends State<FeedbackPage> {
       });
     }
   }
-
   Future<void> _submitFeedback() async {
     final loc = AppLocalizations.of(context)!;
-
     if (_nameController.text.isEmpty || _messageController.text.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(loc
-              .pleaseEnter), // Assuming loc.pleaseEnter is "Please fill all fields"
+              .pleaseEnter),
           backgroundColor: Colors.red.shade400,
           behavior: SnackBarBehavior.floating,
           shape:
@@ -50,35 +38,24 @@ class _FeedbackPageState extends State<FeedbackPage> {
       );
       return;
     }
-
     setState(() => _isSubmitting = true);
-
     String? imageUrl;
-
     try {
-      // 💡 MIGRATED STEP 1: Replace supabaseService.uploadImage
       if (_selectedImage != null) {
         imageUrl = await apiService.uploadImage(_selectedImage!);
       }
-
-      // 💡 MIGRATED STEP 2: Replace supabaseService.addFeedback
       await apiService.addFeedback(
         _nameController.text,
         _messageController.text,
         imageUrl: imageUrl,
       );
-
-      // --- Success actions ---
       setState(() {
         _isSubmitting = false;
         _selectedImage = null;
         _nameController.clear();
         _messageController.clear();
       });
-
       if (!mounted) return;
-
-      // Show success dialog
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -130,7 +107,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
         ),
       );
     } catch (e) {
-      // ⚠️ New Error Handling: Catch exceptions thrown by ApiService
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -148,17 +124,13 @@ class _FeedbackPageState extends State<FeedbackPage> {
       if (mounted) setState(() => _isSubmitting = false);
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      // Use CustomScrollView or NestedScrollView if this layout breaks the screen height
       body: Column(
         children: [
-          // Curved Header (unchanged)
           Container(
             height: 140,
             decoration: BoxDecoration(
@@ -178,7 +150,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
             child: SafeArea(
               child: Column(
                 children: [
-                  // App Bar
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -190,12 +161,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           onPressed: () => Navigator.pop(context),
                         ),
                         const Spacer(),
-                        // Add a placeholder for Admin Feedback link if needed
                       ],
                     ),
                   ),
                   const Spacer(),
-                  // Title
                   Text(
                     loc.feedbackTitle.toUpperCase(),
                     style: const TextStyle(
@@ -210,8 +179,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
               ),
             ),
           ),
-
-          // Scrollable Content
           Expanded(
             child: SingleChildScrollView(
               child: Padding(
@@ -219,7 +186,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Welcome card (unchanged)
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -287,10 +253,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
-                    // Form Card
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -308,7 +271,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Name Field (unchanged)
                             Text(
                               loc.yourName,
                               style: TextStyle(
@@ -342,10 +304,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 ),
                               ),
                             ),
-
                             const SizedBox(height: 20),
-
-                            // Feedback Field (unchanged)
                             Text(
                               loc.yourFeedback,
                               style: TextStyle(
@@ -383,10 +342,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 ),
                               ),
                             ),
-
                             const SizedBox(height: 24),
-
-                            // Image Section (unchanged logic)
                             Text(
                               'Attachment (Optional)',
                               style: TextStyle(
@@ -396,7 +352,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               ),
                             ),
                             const SizedBox(height: 12),
-
                             if (_selectedImage != null)
                               Stack(
                                 children: [
@@ -477,10 +432,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                   ),
                                 ),
                               ),
-
                             const SizedBox(height: 32),
-
-                            // Submit Button
                             SizedBox(
                               width: double.infinity,
                               height: 56,
@@ -526,7 +478,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
                   ],
                 ),

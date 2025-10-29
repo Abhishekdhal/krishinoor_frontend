@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../l10n/app_localizations.dart';
-
 class MarketPricePage extends StatefulWidget {
   const MarketPricePage({super.key});
-
   @override
   State<MarketPricePage> createState() => _MarketPricePageState();
 }
-
 class _MarketPricePageState extends State<MarketPricePage>
     with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
-
   final List<Map<String, dynamic>> products = const [
     {
       "name": "Urea (50 kg)",
@@ -61,7 +57,6 @@ class _MarketPricePageState extends State<MarketPricePage>
       "type": "Nutrients",
     },
   ];
-
   @override
   void initState() {
     super.initState();
@@ -74,24 +69,20 @@ class _MarketPricePageState extends State<MarketPricePage>
     );
     _controller.forward();
   }
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
     return DefaultTabController(
       length: 4,
       child: Scaffold(
         backgroundColor: Colors.grey[50],
         body: Column(
           children: [
-            // Header with gradient
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -111,7 +102,6 @@ class _MarketPricePageState extends State<MarketPricePage>
                 bottom: false,
                 child: Column(
                   children: [
-                    // Back button and title
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                       child: Row(
@@ -154,7 +144,6 @@ class _MarketPricePageState extends State<MarketPricePage>
                         ],
                       ),
                     ),
-                    // Tab bar
                     Container(
                       margin: EdgeInsets.fromLTRB(16, 0, 16, 16),
                       height: 50,
@@ -187,7 +176,6 @@ class _MarketPricePageState extends State<MarketPricePage>
                 ),
               ),
             ),
-            // Content
             Expanded(
               child: FadeTransition(
                 opacity: _fadeAnimation,
@@ -206,11 +194,9 @@ class _MarketPricePageState extends State<MarketPricePage>
       ),
     );
   }
-
   Widget _buildDashboard(BuildContext context, String type) {
     final filteredProducts =
         products.where((product) => product['type'] == type).toList();
-
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -237,11 +223,9 @@ class _MarketPricePageState extends State<MarketPricePage>
       ],
     );
   }
-
   Widget _buildProductCard(BuildContext context, Map<String, dynamic> product) {
     final l10n = AppLocalizations.of(context)!;
     final best = _getBestOption(product);
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -365,7 +349,6 @@ class _MarketPricePageState extends State<MarketPricePage>
       ),
     );
   }
-
   Widget _priceTile(
       String label, int price, bool highlight, Color accentColor) {
     return Column(
@@ -401,11 +384,9 @@ class _MarketPricePageState extends State<MarketPricePage>
       ],
     );
   }
-
   Widget _buildTrendChart(
       BuildContext context, List<Map<String, dynamic>> filteredProducts) {
     final l10n = AppLocalizations.of(context)!;
-
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -540,7 +521,6 @@ class _MarketPricePageState extends State<MarketPricePage>
       ),
     );
   }
-
   Color _getColorForIndex(int index) {
     final colors = [
       Color(0xFF4CAF50),
@@ -551,24 +531,19 @@ class _MarketPricePageState extends State<MarketPricePage>
     ];
     return colors[index % colors.length];
   }
-
   List<FlSpot> _mapTrend(List<int> trend) {
     return List.generate(
         trend.length, (i) => FlSpot(i.toDouble(), trend[i].toDouble()));
   }
-
   String _getBestOption(Map<String, dynamic> product) {
     int amazon = product['amazon'];
     int flipkart = product['flipkart'];
     int mandi = product['mandi'];
-
     int minPrice = [amazon, flipkart, mandi].reduce((a, b) => a < b ? a : b);
-
     if (minPrice == mandi) return "Mandi";
     if (minPrice == amazon) return "Amazon";
     return "Flipkart";
   }
-
   String _getLocalizedBest(AppLocalizations l10n, String best) {
     switch (best) {
       case "Amazon":

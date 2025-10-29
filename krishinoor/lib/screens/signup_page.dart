@@ -1,22 +1,16 @@
-// lib/screens/signup_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// REMOVED: import 'package:supabase_flutter/supabase_flutter.dart';
 import '../l10n/app_localizations.dart';
 import '../main.dart';
-import '../services/api_service.dart'; // 💡 NEW: Import the custom API service
+import '../services/api_service.dart';
 import 'home_page.dart';
 import 'login_page.dart';
-import 'package:flutter/foundation.dart'; // Import kDebugMode
-
+import 'package:flutter/foundation.dart';
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
-
   @override
   State<SignUpPage> createState() => _SignUpPageState();
 }
-
 class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _nameController = TextEditingController();
@@ -25,44 +19,33 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
   String? _selectedLanguage;
   bool _isLoading = false;
   bool _obscurePassword = true;
-
-  // 💡 NEW: Initialize API service
   final ApiService _apiService = ApiService();
-
   late AnimationController _animationController;
   late AnimationController _pulseController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
   late Animation<double> _pulseAnimation;
-
   final List<Map<String, String>> languages = [
     {"code": "en", "label": "English"},
     {"code": "hi", "label": "Hindi"},
     {"code": "ml", "label": "Malyalam"},
     {"code": "or", "label": "Odia"},
   ];
-
   @override
   void initState() {
     super.initState();
     _loadSavedData();
     _setupAnimations();
-    // ⚠️ MIGRATION NOTE: Supabase Auth Listener is removed.
-    // We only check for navigation after a successful registration API call.
-    // _setupAuthListener(); // REMOVED
   }
-
   void _setupAnimations() {
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -70,7 +53,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-
     _slideAnimation = Tween<double>(
       begin: 50.0,
       end: 0.0,
@@ -78,7 +60,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       parent: _animationController,
       curve: Curves.elasticOut,
     ));
-
     _pulseAnimation = Tween<double>(
       begin: 0.95,
       end: 1.05,
@@ -86,47 +67,23 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
-
     _animationController.forward();
   }
-
-  // REMOVED: Supabase Auth Listener is no longer functional.
-  /*
-  void _setupAuthListener() {
-    // Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-    //   final session = data.session;
-    //   if (session != null && mounted) {
-    //     // Successfully signed in with Google
-    //     Navigator.pushReplacement(
-    //       context,
-    //       MaterialPageRoute(builder: (_) => const HomePage()),
-    //     );
-    //   }
-    // });
-  }
-  */
-
   Future<void> _loadSavedData() async {
     final prefs = await SharedPreferences.getInstance();
     final savedLangCode = prefs.getString("language");
-
     setState(() {
       _selectedLanguage = savedLangCode;
     });
-
     if (savedLangCode != null) {
       if (mounted) {
         FarmersApp.setLocale(context, Locale(savedLangCode));
       }
     }
   }
-
-  /// 💡 MIGRATED: Replaced Supabase sign-up and profile update with a single API call.
   Future<void> _signUp() async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
-
-    // Check all required fields (now properly cleaned of hidden characters)
     if (_emailController.text.isEmpty ||
         _nameController.text.isEmpty ||
         _phoneController.text.isEmpty ||
@@ -135,39 +92,28 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       _showCustomSnackBar(l10n.fillAllFields, isError: true);
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
-      // 💥 FIXED: Passes the 'language' parameter and uses 'name' key (matching API service)
       await _apiService.registerUser(
         email: _emailController.text,
         password: _passwordController.text,
         name: _nameController
-            .text, // Changed parameter name to match ApiService/Backend
+            .text,
         phone: _phoneController.text,
-        language: _selectedLanguage!, // PASSING LANGUAGE
+        language: _selectedLanguage!,
       );
-
-      // Save selected language locally upon successful signup
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString("language", _selectedLanguage!);
-
       if (!mounted) return;
-
       _showCustomSnackBar(l10n.signupSuccess, isError: false);
-
-      // Navigate to home page
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
       );
     } catch (e) {
-      // 🔑 Improved error display logic
       final errorMessage = e.toString().contains("Exception:")
           ? e.toString().split("Exception:")[1].trim()
           : e.toString();
-
       _showCustomSnackBar("${l10n.signupFailed}: $errorMessage", isError: true);
       if (kDebugMode) {
         debugPrint("Sign Up Error: $e");
@@ -176,39 +122,15 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-
-  /// ⚠️ MIGRATED/TEMPORARILY REMOVED: Google OAuth sign-in.
-  /// This must be entirely re-architected on the Vercel backend side.
   Future<void> _signUpWithGoogle() async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
-
     _showCustomSnackBar(
         "Google Sign-Up is not yet configured for Vercel backend.",
         isError: true);
-
-    // Original logic is removed as it relies heavily on Supabase's built-in SDK.
-    /*
-    setState(() => _isLoading = true);
-    try {
-      final result = await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'io.supabase.flutterdemo://login-callback/',
-        authScreenLaunchMode: LaunchMode.externalApplication,
-      );
-      // ... (rest of the original OAuth logic)
-    } on AuthException catch (error) {
-      // ...
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-    */
   }
-
   void _showCustomSnackBar(String message, {bool isError = false}) {
     if (!mounted) return;
-
-    // ... (Snackbar implementation remains the same)
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -229,10 +151,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       ),
     );
   }
-
-  // --- Widget Builders (Skipped as they are unchanged) ---
   Widget _buildGradientBackground() {
-    // ... (unchanged)
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -262,9 +181,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       ),
     );
   }
-
   Widget _buildFloatingElements() {
-    // ... (unchanged)
     return Stack(
       children: [
         Positioned(
@@ -310,7 +227,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       ],
     );
   }
-
   Widget _buildCustomTextField({
     required TextEditingController controller,
     required String labelText,
@@ -319,7 +235,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     TextInputType keyboardType = TextInputType.text,
     Widget? suffixIcon,
   }) {
-    // ... (unchanged)
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -361,7 +276,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       ),
     );
   }
-
   Widget _buildGradientButton({
     required String text,
     required VoidCallback onPressed,
@@ -369,7 +283,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     IconData? icon,
     Color textColor = Colors.white,
   }) {
-    // ... (unchanged)
     return Container(
       width: double.infinity,
       height: 46,
@@ -431,7 +344,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       ),
     );
   }
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -442,11 +354,9 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     _pulseController.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       body: Stack(
         children: [
@@ -488,7 +398,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  // Logo, Title, Message (Skipped code for brevity)
                                   Container(
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
@@ -524,7 +433,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   const SizedBox(height: 16),
-
                                   ShaderMask(
                                     shaderCallback: (bounds) => LinearGradient(
                                       colors: [
@@ -542,27 +450,22 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-
                                   const Text(
                                     "Create your farmer's account",
                                     style: TextStyle(
                                       color: Color(
-                                          0xFF757575), // Colors.grey[600] equivalent
+                                          0xFF757575),
                                       fontSize: 13,
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: 16),
-
-                                  // Name Field
                                   _buildCustomTextField(
                                     controller: _nameController,
                                     labelText: l10n.name,
                                     prefixIcon: Icons.person_outline,
                                   ),
                                   const SizedBox(height: 10),
-
-                                  // Email Field
                                   _buildCustomTextField(
                                     controller: _emailController,
                                     labelText: l10n.email,
@@ -570,8 +473,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     keyboardType: TextInputType.emailAddress,
                                   ),
                                   const SizedBox(height: 10),
-
-                                  // Phone Field
                                   _buildCustomTextField(
                                     controller: _phoneController,
                                     labelText: l10n.phone,
@@ -579,8 +480,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     keyboardType: TextInputType.phone,
                                   ),
                                   const SizedBox(height: 10),
-
-                                  // Password Field
                                   _buildCustomTextField(
                                     controller: _passwordController,
                                     labelText: l10n.password,
@@ -599,8 +498,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   const SizedBox(height: 10),
-
-                                  // Language Dropdown
                                   Container(
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(12),
@@ -667,8 +564,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   const SizedBox(height: 16),
-
-                                  // Sign Up Button
                                   _buildGradientButton(
                                     text: l10n.signup,
                                     onPressed: _signUp,
@@ -679,8 +574,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     icon: Icons.person_add_rounded,
                                   ),
                                   const SizedBox(height: 16),
-
-                                  // OR Separator (Skipped code for brevity)
                                   Row(
                                     children: [
                                       Expanded(
@@ -704,8 +597,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     ],
                                   ),
                                   const SizedBox(height: 16),
-
-                                  // Google Sign Up Button
                                   Container(
                                     width: double.infinity,
                                     height: 46,
@@ -754,10 +645,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                       ),
                                     ),
                                   ),
-
                                   const SizedBox(height: 16),
-
-                                  // Login Link
                                   TextButton(
                                     onPressed: () {
                                       Navigator.pushReplacement(

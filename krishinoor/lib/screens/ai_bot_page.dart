@@ -5,51 +5,38 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import '../l10n/app_localizations.dart'; // Import L10n
-import 'package:flutter/foundation.dart'; // Import kDebugMode
-import 'package:flutter_markdown/flutter_markdown.dart'; // 💡 1. IMPORT MARKDOWN PACKAGE
-
+import '../l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 class AIBotPage extends StatefulWidget {
   const AIBotPage({super.key});
-
   @override
   State<AIBotPage> createState() => _AIBotPageState();
 }
-
 class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final List<Map<String, String>> messages = [];
   final stt.SpeechToText _speech = stt.SpeechToText();
   final ImagePicker _picker = ImagePicker();
   final ScrollController _scrollController = ScrollController();
-
   bool _isListening = false;
   bool _isLoading = false;
   File? _selectedImage;
-
-  // FIX: Make apiKey and _model late
   late final String apiKey;
   late GenerativeModel _model;
-  bool _modelInitialized = false; // Track if model is ready
-
+  bool _modelInitialized = false;
   late AnimationController _animationController;
   late AnimationController _pulseController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-
-  // Theme colors matching your app
   final Color primaryGreen = const Color(0xFF2E7D32);
   final Color lightGreen = const Color(0xFF66BB6A);
   final Color accentGold = const Color(0xFFFFB300);
   final Color backgroundWhite = const Color(0xFFFAFAFA);
-
   @override
   void initState() {
     super.initState();
-
-    // FIX: Initialize apiKey and _model safely inside initState
     try {
-      // Dart's non-nullable access is safe here since dotenv is loaded in main.dart
       apiKey = dotenv.env['GEMINI_API_KEY']!;
     } catch (e) {
       if (kDebugMode) {
@@ -58,7 +45,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       }
       apiKey = "";
     }
-
     if (apiKey.isNotEmpty) {
       _model = GenerativeModel(
         model: "gemini-2.5-flash",
@@ -66,26 +52,20 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       );
       _modelInitialized = true;
     }
-
     _setupAnimations();
-
-    // Call in post-frame callback to ensure context is available for l10n
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _addWelcomeMessage();
     });
   }
-
   void _setupAnimations() {
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
-
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -93,7 +73,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-
     _scaleAnimation = Tween<double>(
       begin: 0.8,
       end: 1.0,
@@ -101,11 +80,8 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       parent: _animationController,
       curve: Curves.elasticOut,
     ));
-
     _animationController.forward();
   }
-
-  // Uses the localized welcome string
   void _addWelcomeMessage() {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
@@ -113,7 +89,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       messages.add({"role": "bot", "text": l10n.krishiMitraWelcome});
     });
   }
-
   Future<String> _getAIResponse(
     String userMessage,
     AppLocalizations l10n, {
@@ -122,20 +97,16 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
     if (!_modelInitialized) {
       return "⚠️ Gemini API Key not found. Please configure your .env file.";
     }
-
     setState(() {
       _isLoading = true;
     });
-
     try {
       final prompt = Content.multi([
-        // Setting the model's role
         TextPart(l10n.krishiMitraSystemPrompt),
         TextPart(userMessage),
         if (base64Image != null)
           DataPart("image/jpeg", base64Decode(base64Image)),
       ]);
-
       final response = await _model.generateContent([prompt]);
       return response.text ?? "⚠️ No response from Gemini.";
     } catch (e) {
@@ -146,14 +117,10 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       });
     }
   }
-
   void _sendMessage({bool isImage = false}) async {
     if (!mounted) return;
-    final l10n = AppLocalizations.of(context)!; // Get L10n object
-
+    final l10n = AppLocalizations.of(context)!;
     if (!isImage && _controller.text.trim().isEmpty) return;
-
-    // Check if model is initialized before proceeding
     if (!_modelInitialized) {
       setState(() {
         messages.add({
@@ -165,41 +132,31 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       _scrollToBottom();
       return;
     }
-
     final userText = _controller.text.trim();
     String? base64Image;
-
     if (isImage && _selectedImage != null) {
       final bytes = await _selectedImage!.readAsBytes();
       base64Image = base64Encode(bytes);
     }
-
     setState(() {
       messages.add({
         "role": "user",
-        // Use localized placeholder for image message
         "text": userText.isEmpty ? l10n.sentImagePlaceholder : userText
       });
     });
-
     _controller.clear();
     _scrollToBottom();
-
     final botReply = await _getAIResponse(
-      // Use localized prompt for image analysis if text is empty
       userText.isEmpty ? l10n.analyzeImagePrompt : userText,
       l10n,
       base64Image: base64Image,
     );
-
     setState(() {
       messages.add({"role": "bot", "text": botReply});
     });
-
     _scrollToBottom();
     _selectedImage = null;
   }
-
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -211,7 +168,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       }
     });
   }
-
   void _listenVoice() async {
     if (!_isListening) {
       bool available = await _speech.initialize(
@@ -222,7 +178,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
           setState(() => _isListening = false);
         },
       );
-
       if (available) {
         setState(() => _isListening = true);
         _speech.listen(onResult: (result) {
@@ -236,7 +191,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       _speech.stop();
     }
   }
-
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
@@ -246,14 +200,12 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       _sendMessage(isImage: true);
     }
   }
-
   void _clearChat() {
     setState(() {
       messages.clear();
     });
     _addWelcomeMessage();
   }
-
   @override
   void dispose() {
     _animationController.dispose();
@@ -262,12 +214,9 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
     _controller.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
-    // Get L10n object once in build method
     final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -299,9 +248,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       ),
     );
   }
-
-  // --- Custom App Bar ---
-
   Widget _buildCustomAppBar(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 20),
@@ -356,7 +302,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.botNameTitle.toUpperCase(), // Localized App Bar Title
+                  l10n.botNameTitle.toUpperCase(),
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -365,7 +311,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
                   ),
                 ),
                 Text(
-                  l10n.botSubtitle, // Localized App Bar Subtitle
+                  l10n.botSubtitle,
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.white.withAlpha(204),
@@ -377,15 +323,12 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
           IconButton(
             icon: const Icon(Icons.delete_sweep, color: Colors.white),
             onPressed: _clearChat,
-            tooltip: l10n.clearChatTooltip, // Localized Tooltip
+            tooltip: l10n.clearChatTooltip,
           ),
         ],
       ),
     );
   }
-
-  // --- Chat Area and Logic ---
-
   Widget _buildChatArea(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -399,7 +342,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
               itemBuilder: (context, index) {
                 final msg = messages[index];
                 final isUser = msg["role"] == "user";
-
                 return AnimatedContainer(
                   duration: Duration(milliseconds: 300 + (index * 100)),
                   curve: Curves.easeOutBack,
@@ -415,7 +357,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       ),
     );
   }
-
   Widget _buildMessageBubble(String text, bool isUser) {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -470,7 +411,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
               const SizedBox(width: 8),
             ],
             Flexible(
-              // 💡 2. REPLACE Text WITH MarkdownBody
               child: MarkdownBody(
                 data: text,
                 selectable: true,
@@ -489,7 +429,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
                     color: isUser ? Colors.white : Colors.black87,
                     height: 1.4,
                   ),
-                  // Add more styles as needed (e.g., h1, h2)
                 ),
               ),
             ),
@@ -498,7 +437,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       ),
     );
   }
-
   Widget _buildTypingIndicator(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -537,7 +475,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
               ),
               const SizedBox(width: 12),
               Text(
-                l10n.botThinking, // Localized typing indicator
+                l10n.botThinking,
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.black54,
@@ -552,7 +490,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       ),
     );
   }
-
   Widget _buildImagePreview() {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -598,9 +535,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       ),
     );
   }
-
-  // --- Input Controls ---
-
   Widget _buildInputArea(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -653,7 +587,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
                 child: TextField(
                   controller: _controller,
                   decoration: InputDecoration(
-                    hintText: l10n.askBotHint, // Localized hint text
+                    hintText: l10n.askBotHint,
                     hintStyle: TextStyle(color: Colors.grey[600]),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
@@ -706,7 +640,6 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
       ),
     );
   }
-
   Widget _buildActionButton({
     required IconData icon,
     required Color color,
@@ -732,20 +665,14 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
     );
   }
 }
-
-// --- Typing Dots Widget ---
-
 class _TypingDots extends StatefulWidget {
   const _TypingDots();
-
   @override
   State<_TypingDots> createState() => _TypingDotsState();
 }
-
 class _TypingDotsState extends State<_TypingDots>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-
   @override
   void initState() {
     super.initState();
@@ -754,13 +681,11 @@ class _TypingDotsState extends State<_TypingDots>
       duration: const Duration(milliseconds: 1200),
     )..repeat();
   }
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -773,7 +698,6 @@ class _TypingDotsState extends State<_TypingDots>
             double animValue = (_controller.value - delay) % 1.0;
             double opacity =
                 animValue < 0.5 ? (animValue * 2) : (2 - animValue * 2);
-
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2),
               child: Opacity(
