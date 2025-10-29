@@ -14,15 +14,17 @@ class ProblemUploadPage extends StatefulWidget {
   State<ProblemUploadPage> createState() => _ProblemUploadPageState();
 }
 
-class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProviderStateMixin {
+class _ProblemUploadPageState extends State<ProblemUploadPage>
+    with TickerProviderStateMixin {
   File? _image;
   final picker = ImagePicker();
   final TextEditingController _descController = TextEditingController();
-  final TextEditingController _imageUrlController = TextEditingController(); // NEW: Image URL controller
+  final TextEditingController _imageUrlController =
+      TextEditingController(); // NEW: Image URL controller
   bool _loading = false;
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
-  
+
   final ApiService _apiService = ApiService();
   final _storage = FlutterSecureStorage();
 
@@ -67,11 +69,13 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
     }
 
     if (_imageUrlController.text.isEmpty && _image == null) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please provide an image URL or upload an image file.')),
-        );
-        return;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content:
+                Text('Please provide an image URL or upload an image file.')),
+      );
+      return;
     }
 
     setState(() => _loading = true);
@@ -89,11 +93,13 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
       await _apiService.reportProblem(
         description: _descController.text,
         imageFile: _image,
-        imageUrl: _imageUrlController.text.isNotEmpty ? _imageUrlController.text : null,
+        imageUrl: _imageUrlController.text.isNotEmpty
+            ? _imageUrlController.text
+            : null,
       );
 
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -115,7 +121,9 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("${l10n.error} ${e.toString().replaceFirst('Exception: ', '')}")),
+        SnackBar(
+            content: Text(
+                "${l10n.error} ${e.toString().replaceFirst('Exception: ', '')}")),
       );
     } finally {
       setState(() => _loading = false);
@@ -263,7 +271,8 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                         color: Colors.white.withAlpha(51),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(Icons.bug_report, color: Colors.white, size: 24),
+                      child:
+                          Icon(Icons.bug_report, color: Colors.white, size: 24),
                     ),
                     SizedBox(width: 12),
                     Column(
@@ -323,11 +332,15 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                                 padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                                    colors: [
+                                      Color(0xFF4CAF50),
+                                      Color(0xFF66BB6A)
+                                    ],
                                   ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Icon(Icons.description, color: Colors.white, size: 20),
+                                child: Icon(Icons.description,
+                                    color: Colors.white, size: 20),
                               ),
                               SizedBox(width: 12),
                               Text(
@@ -344,19 +357,23 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                           TextField(
                             controller: _descController,
                             decoration: InputDecoration(
-                              hintText: 'Describe the problem you\'re facing...',
+                              hintText:
+                                  'Describe the problem you\'re facing...',
                               hintStyle: TextStyle(color: Colors.grey[400]),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Color(0xFF4CAF50), width: 2),
+                                borderSide: BorderSide(
+                                    color: Color(0xFF4CAF50), width: 2),
                               ),
                               filled: true,
                               fillColor: Colors.grey[50],
@@ -367,7 +384,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                       ),
                     ),
                     SizedBox(height: 20),
-                    
+
                     // NEW: Image URL Card
                     Container(
                       decoration: BoxDecoration(
@@ -391,11 +408,15 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                                 padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                                    colors: [
+                                      Color(0xFF4CAF50),
+                                      Color(0xFF66BB6A)
+                                    ],
                                   ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Icon(Icons.link, color: Colors.white, size: 20),
+                                child: Icon(Icons.link,
+                                    color: Colors.white, size: 20),
                               ),
                               SizedBox(width: 12),
                               Text(
@@ -408,7 +429,8 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                               ),
                               SizedBox(width: 8),
                               Container(
-                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: Colors.grey[200],
                                   borderRadius: BorderRadius.circular(8),
@@ -430,18 +452,22 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                             decoration: InputDecoration(
                               hintText: 'Paste image URL here (required)...',
                               hintStyle: TextStyle(color: Colors.grey[400]),
-                              prefixIcon: Icon(Icons.insert_link, color: Color(0xFF4CAF50)),
+                              prefixIcon: Icon(Icons.insert_link,
+                                  color: Color(0xFF4CAF50)),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Color(0xFF4CAF50), width: 2),
+                                borderSide: BorderSide(
+                                    color: Color(0xFF4CAF50), width: 2),
                               ),
                               filled: true,
                               fillColor: Colors.grey[50],
@@ -451,7 +477,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                       ),
                     ),
                     SizedBox(height: 20),
-                    
+
                     // Image Upload Card (Modified - Optional)
                     Container(
                       decoration: BoxDecoration(
@@ -475,11 +501,15 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                                 padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                                    colors: [
+                                      Color(0xFF4CAF50),
+                                      Color(0xFF66BB6A)
+                                    ],
                                   ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Icon(Icons.photo_camera, color: Colors.white, size: 20),
+                                child: Icon(Icons.photo_camera,
+                                    color: Colors.white, size: 20),
                               ),
                               SizedBox(width: 12),
                               Text(
@@ -492,7 +522,8 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                               ),
                               SizedBox(width: 8),
                               Container(
-                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: Colors.grey[200],
                                   borderRadius: BorderRadius.circular(8),
@@ -525,12 +556,14 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                                     ),
                                     child: Center(
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Container(
                                             padding: EdgeInsets.all(16),
                                             decoration: BoxDecoration(
-                                              color: Color(0xFF4CAF50).withAlpha(26),
+                                              color: Color(0xFF4CAF50)
+                                                  .withAlpha(26),
                                               shape: BoxShape.circle,
                                             ),
                                             child: Icon(
@@ -588,7 +621,8 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                                             shape: BoxShape.circle,
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.black.withAlpha(51),
+                                                color:
+                                                    Colors.black.withAlpha(51),
                                                 blurRadius: 8,
                                               ),
                                             ],
@@ -607,7 +641,8 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                             SizedBox(height: 12),
                             OutlinedButton.icon(
                               onPressed: () => _showImageSourceDialog(l10n),
-                              icon: Icon(Icons.refresh, color: Color(0xFF4CAF50)),
+                              icon:
+                                  Icon(Icons.refresh, color: Color(0xFF4CAF50)),
                               label: Text(
                                 'Change Image',
                                 style: TextStyle(color: Color(0xFF4CAF50)),
@@ -625,7 +660,7 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                       ),
                     ),
                     SizedBox(height: 24),
-                    
+
                     // Upload Button
                     SizedBox(
                       width: double.infinity,
@@ -667,18 +702,20 @@ class _ProblemUploadPageState extends State<ProblemUploadPage> with TickerProvid
                       ),
                     ),
                     SizedBox(height: 16),
-                    
+
                     // Info Card
                     Container(
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Color(0xFF4CAF50).withAlpha(26),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Color(0xFF4CAF50).withAlpha(51)),
+                        border:
+                            Border.all(color: Color(0xFF4CAF50).withAlpha(51)),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.info_outline, color: Color(0xFF4CAF50), size: 20),
+                          Icon(Icons.info_outline,
+                              color: Color(0xFF4CAF50), size: 20),
                           SizedBox(width: 12),
                           Expanded(
                             child: Text(

@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 // Note: We renamed supabase_service.dart to api_service.dart
-import '../services/api_service.dart'; 
+import '../services/api_service.dart';
 import '../l10n/app_localizations.dart';
 
 class FeedbackPage extends StatefulWidget {
@@ -17,9 +17,9 @@ class FeedbackPage extends StatefulWidget {
 class _FeedbackPageState extends State<FeedbackPage> {
   final _nameController = TextEditingController();
   final _messageController = TextEditingController();
-  
+
   // 💡 MIGRATED: Use the new ApiService class
-  final ApiService apiService = ApiService(); 
+  final ApiService apiService = ApiService();
 
   File? _selectedImage;
   bool _isSubmitting = false;
@@ -40,10 +40,12 @@ class _FeedbackPageState extends State<FeedbackPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(loc.pleaseEnter), // Assuming loc.pleaseEnter is "Please fill all fields"
+          content: Text(loc
+              .pleaseEnter), // Assuming loc.pleaseEnter is "Please fill all fields"
           backgroundColor: Colors.red.shade400,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       return;
@@ -52,7 +54,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     setState(() => _isSubmitting = true);
 
     String? imageUrl;
-    
+
     try {
       // 💡 MIGRATED STEP 1: Replace supabaseService.uploadImage
       if (_selectedImage != null) {
@@ -80,7 +82,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           backgroundColor: Colors.white,
           title: Row(
             children: [
@@ -90,7 +93,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   color: Colors.green.shade50,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.check_circle, color: Colors.green.shade700, size: 32),
+                child: Icon(Icons.check_circle,
+                    color: Colors.green.shade700, size: 32),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -113,7 +117,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
               style: TextButton.styleFrom(
                 backgroundColor: Colors.green.shade700,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -124,16 +129,17 @@ class _FeedbackPageState extends State<FeedbackPage> {
           ],
         ),
       );
-      
     } catch (e) {
       // ⚠️ New Error Handling: Catch exceptions thrown by ApiService
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Submission failed: ${e.toString().replaceFirst('Exception: ', '')}"),
+          content: Text(
+              "Submission failed: ${e.toString().replaceFirst('Exception: ', '')}"),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.all(12),
         ),
       );
@@ -150,7 +156,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       // Use CustomScrollView or NestedScrollView if this layout breaks the screen height
-      body: Column( 
+      body: Column(
         children: [
           // Curved Header (unchanged)
           Container(
@@ -174,11 +180,13 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 children: [
                   // App Bar
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
+                          icon: const Icon(Icons.arrow_back,
+                              color: Colors.white, size: 28),
                           onPressed: () => Navigator.pop(context),
                         ),
                         const Spacer(),
@@ -314,7 +322,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               controller: _nameController,
                               decoration: InputDecoration(
                                 hintText: 'Enter your name',
-                                prefixIcon: Icon(Icons.person_outline, color: Colors.green.shade600),
+                                prefixIcon: Icon(Icons.person_outline,
+                                    color: Colors.green.shade600),
                                 filled: true,
                                 fillColor: Colors.grey.shade50,
                                 border: OutlineInputBorder(
@@ -323,11 +332,13 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade200),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.green.shade600, width: 2),
+                                  borderSide: BorderSide(
+                                      color: Colors.green.shade600, width: 2),
                                 ),
                               ),
                             ),
@@ -351,7 +362,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 hintText: 'Share your thoughts with us...',
                                 prefixIcon: Padding(
                                   padding: const EdgeInsets.only(bottom: 80),
-                                  child: Icon(Icons.edit_outlined, color: Colors.green.shade600),
+                                  child: Icon(Icons.edit_outlined,
+                                      color: Colors.green.shade600),
                                 ),
                                 filled: true,
                                 fillColor: Colors.grey.shade50,
@@ -361,11 +373,13 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade200),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.green.shade600, width: 2),
+                                  borderSide: BorderSide(
+                                      color: Colors.green.shade600, width: 2),
                                 ),
                               ),
                             ),
@@ -442,7 +456,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                   ),
                                   child: Center(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           Icons.add_photo_alternate_outlined,
@@ -479,7 +494,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                   elevation: 4,
                                   shadowColor: Colors.green.shade200,
                                 ),
-                                onPressed: _isSubmitting ? null : _submitFeedback,
+                                onPressed:
+                                    _isSubmitting ? null : _submitFeedback,
                                 child: _isSubmitting
                                     ? const SizedBox(
                                         height: 24,
@@ -490,7 +506,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                         ),
                                       )
                                     : Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           const Icon(Icons.send, size: 22),
                                           const SizedBox(width: 8),

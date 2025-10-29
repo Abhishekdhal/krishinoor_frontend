@@ -14,7 +14,8 @@ const String _kTokenKey = 'jwt_token';
 const String _kUserEmailKey = 'user_email';
 
 Future<String?> _getToken() => _storage.read(key: _kTokenKey);
-Future<void> _saveToken(String token) => _storage.write(key: _kTokenKey, value: token);
+Future<void> _saveToken(String token) =>
+    _storage.write(key: _kTokenKey, value: token);
 Future<void> _deleteToken() => _storage.delete(key: _kTokenKey);
 
 // --- API ENDPOINTS ---
@@ -51,7 +52,8 @@ class ApiService {
     return response;
   }
 
-  Future<http.Response> _authenticatedPost(String endpoint, Map<String, dynamic> body) async {
+  Future<http.Response> _authenticatedPost(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await _getToken();
     if (token == null) throw Exception('Unauthenticated: No token found.');
 
@@ -72,7 +74,8 @@ class ApiService {
     return response;
   }
 
-  Future<http.Response> _authenticatedPut(String endpoint, Map<String, dynamic> body) async {
+  Future<http.Response> _authenticatedPut(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await _getToken();
     if (token == null) throw Exception('Unauthenticated: No token found.');
 
@@ -203,7 +206,8 @@ class ApiService {
     final uri = Uri.parse('$_baseUrl$uploadEndpoint');
     final request = http.MultipartRequest('POST', uri);
     request.headers['Authorization'] = 'Bearer $token';
-    request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+    request.files
+        .add(await http.MultipartFile.fromPath('image', imageFile.path));
 
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
@@ -217,8 +221,10 @@ class ApiService {
         throw Exception('Image upload failed: URL not found in response.');
       }
     } else {
-      debugPrint('❌ Failed to upload image: ${response.statusCode} ${response.body}');
-      throw Exception('Failed to upload image (Status: ${response.statusCode})');
+      debugPrint(
+          '❌ Failed to upload image: ${response.statusCode} ${response.body}');
+      throw Exception(
+          'Failed to upload image (Status: ${response.statusCode})');
     }
   }
 
@@ -238,7 +244,8 @@ class ApiService {
       request.fields['text'] = description;
 
       if (imageFile != null) {
-        request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+        request.files
+            .add(await http.MultipartFile.fromPath('image', imageFile.path));
       } else if (imageUrl != null && imageUrl.isNotEmpty) {
         request.fields['imageUrl'] = imageUrl;
       } else {
@@ -260,7 +267,8 @@ class ApiService {
   }
 
   // --- FEEDBACK ---
-  Future<void> addFeedback(String name, String message, {String? imageUrl}) async {
+  Future<void> addFeedback(String name, String message,
+      {String? imageUrl}) async {
     final body = {
       'name': name,
       'message': message,
@@ -290,7 +298,8 @@ class ApiService {
     controller = StreamController<List<Map<String, dynamic>>>(
       onListen: () {
         fetchFeedback();
-        timer = Timer.periodic(const Duration(seconds: 5), (_) => fetchFeedback());
+        timer =
+            Timer.periodic(const Duration(seconds: 5), (_) => fetchFeedback());
       },
       onCancel: () => timer?.cancel(),
     );
@@ -309,7 +318,8 @@ class ApiService {
         throw const FormatException("Invalid data format from server.");
       }
     } else {
-      throw Exception("Server Error: ${response.statusCode} - ${response.body}");
+      throw Exception(
+          "Server Error: ${response.statusCode} - ${response.body}");
     }
   }
 }

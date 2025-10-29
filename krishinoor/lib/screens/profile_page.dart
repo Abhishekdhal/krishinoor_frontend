@@ -2,13 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// REMOVED: import 'package:supabase_flutter/supabase_flutter.dart'; 
+// REMOVED: import 'package:supabase_flutter/supabase_flutter.dart';
 import '../l10n/app_localizations.dart';
 import '../main.dart'; // for FarmersApp.setLocale
 import '../services/api_service.dart'; // 💡 NEW: Import the custom API service
 
 class ProfilePage extends StatefulWidget {
-  // NOTE: Initial data via constructor is less necessary now, 
+  // NOTE: Initial data via constructor is less necessary now,
   // as the page fetches data directly. We keep it for safety.
   final String? initialName;
   final String? initialEmail;
@@ -25,7 +25,8 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin {
+class _ProfilePageState extends State<ProfilePage>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -109,46 +110,58 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
   Future<void> _loadUserData() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
-    
+
     try {
       // 1. Fetch data from Vercel endpoint
       final remoteData = await _apiService.fetchUserProfile();
-      
+
       // 2. Load local preferences (for language, as it's not server-stored here)
       final prefs = await SharedPreferences.getInstance();
       final savedLang = prefs.getString("language");
-      
+
       // 3. Update controllers and state
       if (mounted) {
         setState(() {
           // Use remote data as primary source, fallback to local prefs or initial values
-          _nameController.text = remoteData['name'] ?? prefs.getString("name") ?? widget.initialName ?? "";
-          _emailController.text = remoteData['email'] ?? prefs.getString("email") ?? widget.initialEmail ?? "";
-          _phoneController.text = remoteData['phone'] ?? prefs.getString("phone") ?? widget.initialPhone ?? "";
-          
+          _nameController.text = remoteData['name'] ??
+              prefs.getString("name") ??
+              widget.initialName ??
+              "";
+          _emailController.text = remoteData['email'] ??
+              prefs.getString("email") ??
+              widget.initialEmail ??
+              "";
+          _phoneController.text = remoteData['phone'] ??
+              prefs.getString("phone") ??
+              widget.initialPhone ??
+              "";
+
           _selectedLanguage = savedLang ?? "en";
           _isLoading = false;
         });
       }
-      
     } catch (e) {
       debugPrint("Error loading user data from API: $e");
-      
+
       // Fallback: If API fails, load basic data from SharedPreferences only.
       final prefs = await SharedPreferences.getInstance();
       if (mounted) {
         setState(() {
-          _nameController.text = prefs.getString("name") ?? widget.initialName ?? "";
-          _emailController.text = prefs.getString("email") ?? widget.initialEmail ?? "";
-          _phoneController.text = prefs.getString("phone") ?? widget.initialPhone ?? "";
+          _nameController.text =
+              prefs.getString("name") ?? widget.initialName ?? "";
+          _emailController.text =
+              prefs.getString("email") ?? widget.initialEmail ?? "";
+          _phoneController.text =
+              prefs.getString("phone") ?? widget.initialPhone ?? "";
           _selectedLanguage = prefs.getString("language") ?? "en";
           _isLoading = false;
         });
-        
+
         // Show an error snackbar for the API failure
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Failed to load profile from server. Data might be old."),
+            content:
+                Text("Failed to load profile from server. Data might be old."),
             backgroundColor: Colors.orange.shade600,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
@@ -164,7 +177,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
     if (_formKey.currentState!.validate()) {
       if (!mounted) return;
       setState(() => _isSaving = true);
-      
+
       try {
         // 1. Send update to Vercel endpoint
         // NOTE: We do not update email here, as it requires special verification flow.
@@ -178,7 +191,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("name", _nameController.text.trim());
         // Email is excluded from local save here as it wasn't updated via API
-        await prefs.setString("phone", _phoneController.text.trim()); 
+        await prefs.setString("phone", _phoneController.text.trim());
         await prefs.setString("language", _selectedLanguage!);
 
         // 3. Update app locale
@@ -199,13 +212,15 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                     color: Colors.white.withAlpha(51),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                  child: const Icon(Icons.check_circle,
+                      color: Colors.white, size: 20),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Text(
                     l10n?.profileUpdated ?? "Profile updated successfully!",
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 15),
                   ),
                 ),
               ],
@@ -213,18 +228,18 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
             backgroundColor: Colors.green.shade600,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             elevation: 8,
             duration: const Duration(seconds: 2),
           ),
         );
-        
+
         Future.delayed(const Duration(milliseconds: 1500), () {
           if (mounted) {
             Navigator.pop(context, true);
           }
         });
-        
       } catch (e) {
         debugPrint("Error saving user data to API: $e");
         if (mounted) {
@@ -245,7 +260,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
               backgroundColor: Colors.red.shade600,
               behavior: SnackBarBehavior.floating,
               margin: const EdgeInsets.all(16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
             ),
           );
         }
@@ -319,7 +335,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
             borderRadius: BorderRadius.circular(20),
             borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
         ),
       ),
     );
@@ -338,7 +355,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -357,7 +374,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
             children: [
               // Enhanced App Bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 child: Row(
                   children: [
                     Container(
@@ -366,7 +384,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                        icon: const Icon(Icons.arrow_back_ios_new,
+                            color: Colors.white, size: 20),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ),
@@ -396,7 +415,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                   ],
                 ),
               ),
-              
+
               // Main Content
               Expanded(
                 child: _isLoading
@@ -457,7 +476,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                             ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.green.withAlpha(102),
+                                                color:
+                                                    Colors.green.withAlpha(102),
                                                 blurRadius: 25,
                                                 offset: const Offset(0, 10),
                                                 spreadRadius: 0,
@@ -472,7 +492,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                             ),
                                             child: CircleAvatar(
                                               radius: 58,
-                                              backgroundColor: Colors.grey.shade50,
+                                              backgroundColor:
+                                                  Colors.grey.shade50,
                                               child: ClipOval(
                                                 child: Image.asset(
                                                   "assets/images/logo.png",
@@ -487,7 +508,9 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       ),
                                       const SizedBox(height: 12),
                                       Text(
-                                        _nameController.text.isEmpty ? "User" : _nameController.text,
+                                        _nameController.text.isEmpty
+                                            ? "User"
+                                            : _nameController.text,
                                         style: TextStyle(
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
@@ -497,7 +520,9 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        _emailController.text.isEmpty ? "user@example.com" : _emailController.text,
+                                        _emailController.text.isEmpty
+                                            ? "user@example.com"
+                                            : _emailController.text,
                                         style: TextStyle(
                                           fontSize: 14,
                                           color: Colors.grey.shade600,
@@ -524,11 +549,12 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       _buildCustomTextField(
                                         controller: _nameController,
                                         labelText: l10n?.name ?? "Name",
-                                        prefixIcon: Icons.person_outline_rounded,
-                                        validator: (value) =>
-                                            value == null || value.isEmpty 
-                                                ? (l10n?.name ?? "Enter your name") 
-                                                : null,
+                                        prefixIcon:
+                                            Icons.person_outline_rounded,
+                                        validator: (value) => value == null ||
+                                                value.isEmpty
+                                            ? (l10n?.name ?? "Enter your name")
+                                            : null,
                                       ),
                                       const SizedBox(height: 20),
 
@@ -537,14 +563,19 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                         controller: _emailController,
                                         labelText: l10n?.email ?? "Email",
                                         prefixIcon: Icons.email_outlined,
-                                        keyboardType: TextInputType.emailAddress,
-                                        enabled: false, // Email should not be editable without a complex backend flow
+                                        keyboardType:
+                                            TextInputType.emailAddress,
+                                        enabled:
+                                            false, // Email should not be editable without a complex backend flow
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
-                                            return l10n?.email ?? "Enter your email";
+                                            return l10n?.email ??
+                                                "Enter your email";
                                           }
-                                          if (!RegExp(r"^[^@]+@[^@]+\.[^@]+").hasMatch(value)) {
-                                            return l10n?.email ?? "Enter a valid email";
+                                          if (!RegExp(r"^[^@]+@[^@]+\.[^@]+")
+                                              .hasMatch(value)) {
+                                            return l10n?.email ??
+                                                "Enter a valid email";
                                           }
                                           return null;
                                         },
@@ -557,9 +588,11 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                         labelText: l10n?.phone ?? "Phone",
                                         prefixIcon: Icons.phone_outlined,
                                         keyboardType: TextInputType.phone,
-                                        validator: (value) => value == null || value.isEmpty
-                                            ? (l10n?.phone ?? "Enter your phone number")
-                                            : null,
+                                        validator: (value) =>
+                                            value == null || value.isEmpty
+                                                ? (l10n?.phone ??
+                                                    "Enter your phone number")
+                                                : null,
                                       ),
                                       const SizedBox(height: 32),
 
@@ -581,7 +614,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       // Enhanced Language Dropdown
                                       Container(
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
                                           color: Colors.white,
                                           boxShadow: [
                                             BoxShadow(
@@ -601,13 +635,18 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                                       children: [
                                                         Text(
                                                           lang["flag"]!,
-                                                          style: const TextStyle(fontSize: 22),
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 22),
                                                         ),
-                                                        const SizedBox(width: 12),
+                                                        const SizedBox(
+                                                            width: 12),
                                                         Text(
                                                           lang["label"]!,
-                                                          style: const TextStyle(
-                                                            fontWeight: FontWeight.w500,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w500,
                                                           ),
                                                         ),
                                                       ],
@@ -616,7 +655,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                               .toList(),
                                           onChanged: (val) {
                                             if (val != null) {
-                                              setState(() => _selectedLanguage = val);
+                                              setState(() =>
+                                                  _selectedLanguage = val);
                                             }
                                           },
                                           decoration: InputDecoration(
@@ -625,29 +665,44 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                               padding: const EdgeInsets.all(8),
                                               decoration: BoxDecoration(
                                                 color: Colors.green.shade50,
-                                                borderRadius: BorderRadius.circular(12),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                               ),
-                                              child: Icon(Icons.language_rounded, color: Colors.green.shade600, size: 22),
+                                              child: Icon(
+                                                  Icons.language_rounded,
+                                                  color: Colors.green.shade600,
+                                                  size: 22),
                                             ),
-                                            labelText: l10n?.language ?? "Language",
+                                            labelText:
+                                                l10n?.language ?? "Language",
                                             labelStyle: TextStyle(
                                               color: Colors.grey.shade600,
                                               fontWeight: FontWeight.w500,
                                             ),
                                             filled: false,
                                             border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(20),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
                                               borderSide: BorderSide.none,
                                             ),
                                             enabledBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(20),
-                                              borderSide: BorderSide(color: Colors.green.shade100, width: 1.5),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              borderSide: BorderSide(
+                                                  color: Colors.green.shade100,
+                                                  width: 1.5),
                                             ),
                                             focusedBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(20),
-                                              borderSide: BorderSide(color: Colors.green.shade400, width: 2.5),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              borderSide: BorderSide(
+                                                  color: Colors.green.shade400,
+                                                  width: 2.5),
                                             ),
-                                            contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    vertical: 20,
+                                                    horizontal: 20),
                                           ),
                                         ),
                                       ),
@@ -658,7 +713,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                         width: double.infinity,
                                         height: 60,
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
                                           gradient: LinearGradient(
                                             colors: [
                                               Colors.green.shade500,
@@ -669,7 +725,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.green.withAlpha(102),
+                                              color:
+                                                  Colors.green.withAlpha(102),
                                               blurRadius: 20,
                                               offset: const Offset(0, 10),
                                               spreadRadius: 0,
@@ -681,29 +738,39 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                             backgroundColor: Colors.transparent,
                                             shadowColor: Colors.transparent,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(20),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
                                             ),
                                           ),
-                                          onPressed: _isSaving ? null : _saveUserData,
+                                          onPressed:
+                                              _isSaving ? null : _saveUserData,
                                           child: _isSaving
                                               ? const SizedBox(
                                                   height: 24,
                                                   width: 24,
-                                                  child: CircularProgressIndicator(
+                                                  child:
+                                                      CircularProgressIndicator(
                                                     color: Colors.white,
                                                     strokeWidth: 3,
                                                   ),
                                                 )
                                               : Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
                                                   children: [
-                                                    const Icon(Icons.check_circle_outline, color: Colors.white, size: 24),
+                                                    const Icon(
+                                                        Icons
+                                                            .check_circle_outline,
+                                                        color: Colors.white,
+                                                        size: 24),
                                                     const SizedBox(width: 12),
                                                     Text(
-                                                      l10n?.save ?? "Save Changes",
+                                                      l10n?.save ??
+                                                          "Save Changes",
                                                       style: const TextStyle(
                                                         fontSize: 18,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                         color: Colors.white,
                                                         letterSpacing: 0.5,
                                                       ),

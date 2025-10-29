@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// REMOVED: import 'package:supabase_flutter/supabase_flutter.dart'; 
+// REMOVED: import 'package:supabase_flutter/supabase_flutter.dart';
 import '../l10n/app_localizations.dart';
 import '../main.dart';
 import '../services/api_service.dart'; // 💡 NEW: Import the custom API service
@@ -25,7 +25,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
   String? _selectedLanguage;
   bool _isLoading = false;
   bool _obscurePassword = true;
-  
+
   // 💡 NEW: Initialize API service
   final ApiService _apiService = ApiService();
 
@@ -47,7 +47,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     super.initState();
     _loadSavedData();
     _setupAnimations();
-    // ⚠️ MIGRATION NOTE: Supabase Auth Listener is removed. 
+    // ⚠️ MIGRATION NOTE: Supabase Auth Listener is removed.
     // We only check for navigation after a successful registration API call.
     // _setupAuthListener(); // REMOVED
   }
@@ -57,7 +57,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
@@ -78,7 +78,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       parent: _animationController,
       curve: Curves.elasticOut,
     ));
-    
+
     _pulseAnimation = Tween<double>(
       begin: 0.95,
       end: 1.05,
@@ -89,7 +89,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
 
     _animationController.forward();
   }
-  
+
   // REMOVED: Supabase Auth Listener is no longer functional.
   /*
   void _setupAuthListener() {
@@ -109,7 +109,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
   Future<void> _loadSavedData() async {
     final prefs = await SharedPreferences.getInstance();
     final savedLangCode = prefs.getString("language");
-    
+
     setState(() {
       _selectedLanguage = savedLangCode;
     });
@@ -125,7 +125,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
   Future<void> _signUp() async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
-    
+
     // Check all required fields (now properly cleaned of hidden characters)
     if (_emailController.text.isEmpty ||
         _nameController.text.isEmpty ||
@@ -137,23 +137,24 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     }
 
     setState(() => _isLoading = true);
-    
+
     try {
       // 💥 FIXED: Passes the 'language' parameter and uses 'name' key (matching API service)
       await _apiService.registerUser(
         email: _emailController.text,
         password: _passwordController.text,
-        name: _nameController.text, // Changed parameter name to match ApiService/Backend
+        name: _nameController
+            .text, // Changed parameter name to match ApiService/Backend
         phone: _phoneController.text,
         language: _selectedLanguage!, // PASSING LANGUAGE
       );
-      
+
       // Save selected language locally upon successful signup
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString("language", _selectedLanguage!);
 
       if (!mounted) return;
-      
+
       _showCustomSnackBar(l10n.signupSuccess, isError: false);
 
       // Navigate to home page
@@ -161,13 +162,12 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
       );
-      
     } catch (e) {
       // 🔑 Improved error display logic
-      final errorMessage = e.toString().contains("Exception:") 
+      final errorMessage = e.toString().contains("Exception:")
           ? e.toString().split("Exception:")[1].trim()
           : e.toString();
-          
+
       _showCustomSnackBar("${l10n.signupFailed}: $errorMessage", isError: true);
       if (kDebugMode) {
         debugPrint("Sign Up Error: $e");
@@ -183,7 +183,9 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
 
-    _showCustomSnackBar("Google Sign-Up is not yet configured for Vercel backend.", isError: true);
+    _showCustomSnackBar(
+        "Google Sign-Up is not yet configured for Vercel backend.",
+        isError: true);
 
     // Original logic is removed as it relies heavily on Supabase's built-in SDK.
     /*
@@ -205,7 +207,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
 
   void _showCustomSnackBar(String message, {bool isError = false}) {
     if (!mounted) return;
-    
+
     // ... (Snackbar implementation remains the same)
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -216,7 +218,8 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
               color: Colors.white,
             ),
             const SizedBox(width: 8),
-            Expanded(child: Text(message, style: const TextStyle(fontSize: 14))),
+            Expanded(
+                child: Text(message, style: const TextStyle(fontSize: 14))),
           ],
         ),
         backgroundColor: isError ? Colors.red.shade600 : Colors.green.shade600,
@@ -352,7 +355,8 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: Colors.green.shade600, width: 1.5),
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
         ),
       ),
     );
@@ -520,10 +524,13 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   const SizedBox(height: 16),
-                                  
+
                                   ShaderMask(
                                     shaderCallback: (bounds) => LinearGradient(
-                                      colors: [Colors.green.shade700, Colors.teal.shade600],
+                                      colors: [
+                                        Colors.green.shade700,
+                                        Colors.teal.shade600
+                                      ],
                                     ).createShader(bounds),
                                     child: Text(
                                       l10n.signup,
@@ -535,17 +542,18 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  
+
                                   const Text(
                                     "Create your farmer's account",
                                     style: TextStyle(
-                                      color: Color(0xFF757575), // Colors.grey[600] equivalent
+                                      color: Color(
+                                          0xFF757575), // Colors.grey[600] equivalent
                                       fontSize: 13,
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: 16),
-                                  
+
                                   // Name Field
                                   _buildCustomTextField(
                                     controller: _nameController,
@@ -553,7 +561,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     prefixIcon: Icons.person_outline,
                                   ),
                                   const SizedBox(height: 10),
-                                  
+
                                   // Email Field
                                   _buildCustomTextField(
                                     controller: _emailController,
@@ -562,7 +570,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     keyboardType: TextInputType.emailAddress,
                                   ),
                                   const SizedBox(height: 10),
-                                  
+
                                   // Phone Field
                                   _buildCustomTextField(
                                     controller: _phoneController,
@@ -571,7 +579,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     keyboardType: TextInputType.phone,
                                   ),
                                   const SizedBox(height: 10),
-                                  
+
                                   // Password Field
                                   _buildCustomTextField(
                                     controller: _passwordController,
@@ -580,15 +588,18 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                     obscureText: _obscurePassword,
                                     suffixIcon: IconButton(
                                       icon: Icon(
-                                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                        _obscurePassword
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
                                         color: Colors.green.shade600,
                                         size: 20,
                                       ),
-                                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                      onPressed: () => setState(() =>
+                                          _obscurePassword = !_obscurePassword),
                                     ),
                                   ),
                                   const SizedBox(height: 10),
-                                  
+
                                   // Language Dropdown
                                   Container(
                                     decoration: BoxDecoration(
@@ -607,44 +618,64 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                       items: languages
                                           .map((lang) => DropdownMenuItem(
                                                 value: lang["code"],
-                                                child: Text(lang["label"]!, style: const TextStyle(fontSize: 14)),
+                                                child: Text(lang["label"]!,
+                                                    style: const TextStyle(
+                                                        fontSize: 14)),
                                               ))
                                           .toList(),
                                       onChanged: (val) {
                                         if (val != null) {
-                                          setState(() => _selectedLanguage = val);
-                                          FarmersApp.setLocale(context, Locale(val));
+                                          setState(
+                                              () => _selectedLanguage = val);
+                                          FarmersApp.setLocale(
+                                              context, Locale(val));
                                         }
                                       },
                                       decoration: InputDecoration(
-                                        prefixIcon: Icon(Icons.language, color: Colors.green.shade600, size: 20),
+                                        prefixIcon: Icon(Icons.language,
+                                            color: Colors.green.shade600,
+                                            size: 20),
                                         labelText: l10n.language,
-                                        labelStyle: TextStyle(color: Colors.green.shade700, fontSize: 13),
+                                        labelStyle: TextStyle(
+                                            color: Colors.green.shade700,
+                                            fontSize: 13),
                                         filled: true,
                                         fillColor: Colors.white.withAlpha(230),
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                           borderSide: BorderSide.none,
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: BorderSide(color: Colors.green.shade200, width: 1),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          borderSide: BorderSide(
+                                              color: Colors.green.shade200,
+                                              width: 1),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: BorderSide(color: Colors.green.shade600, width: 1.5),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          borderSide: BorderSide(
+                                              color: Colors.green.shade600,
+                                              width: 1.5),
                                         ),
-                                        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                vertical: 14, horizontal: 12),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(height: 16),
-                                  
+
                                   // Sign Up Button
                                   _buildGradientButton(
                                     text: l10n.signup,
                                     onPressed: _signUp,
-                                    colors: [Colors.green.shade500, Colors.green.shade800],
+                                    colors: [
+                                      Colors.green.shade500,
+                                      Colors.green.shade800
+                                    ],
                                     icon: Icons.person_add_rounded,
                                   ),
                                   const SizedBox(height: 16),
@@ -652,9 +683,12 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                   // OR Separator (Skipped code for brevity)
                                   Row(
                                     children: [
-                                      Expanded(child: Divider(color: Colors.grey.shade400)),
+                                      Expanded(
+                                          child: Divider(
+                                              color: Colors.grey.shade400)),
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12),
                                         child: Text(
                                           l10n.or,
                                           style: TextStyle(
@@ -664,7 +698,9 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                           ),
                                         ),
                                       ),
-                                      Expanded(child: Divider(color: Colors.grey.shade400)),
+                                      Expanded(
+                                          child: Divider(
+                                              color: Colors.grey.shade400)),
                                     ],
                                   ),
                                   const SizedBox(height: 16),
@@ -684,12 +720,14 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                       ],
                                     ),
                                     child: ElevatedButton.icon(
-                                      onPressed: _isLoading ? null : _signUpWithGoogle,
+                                      onPressed:
+                                          _isLoading ? null : _signUpWithGoogle,
                                       icon: _isLoading
                                           ? const SizedBox(
                                               height: 18,
                                               width: 18,
-                                              child: CircularProgressIndicator(strokeWidth: 2),
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2),
                                             )
                                           : Image.asset(
                                               'assets/images/google.png',
@@ -707,20 +745,22 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                         backgroundColor: Colors.white,
                                         foregroundColor: Colors.grey.shade800,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          side: BorderSide(color: Colors.grey.shade300),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          side: BorderSide(
+                                              color: Colors.grey.shade300),
                                         ),
                                         elevation: 0,
                                       ),
                                     ),
                                   ),
-                                  
+
                                   const SizedBox(height: 16),
-                                  
+
                                   // Login Link
                                   TextButton(
                                     onPressed: () {
-                                      Navigator.pushReplacement( 
+                                      Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) => const LoginPage(),
@@ -728,7 +768,8 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                       );
                                     },
                                     style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8, horizontal: 16),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),

@@ -8,7 +8,8 @@ class NoticeBoardPage extends StatefulWidget {
   State<NoticeBoardPage> createState() => _NoticeBoardPageState();
 }
 
-class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderStateMixin {
+class _NoticeBoardPageState extends State<NoticeBoardPage>
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
 
@@ -63,7 +64,14 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
 
   // filter codes — use codes not localized strings
   String selectedFilter = "all";
-  final List<String> filterCodes = ["all", "scheme", "technology", "jobs", "msp", "finance"];
+  final List<String> filterCodes = [
+    "all",
+    "scheme",
+    "technology",
+    "jobs",
+    "msp",
+    "finance"
+  ];
 
   @override
   void initState() {
@@ -86,7 +94,9 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
 
   List<Map<String, dynamic>> get filteredNotices {
     if (selectedFilter == "all") return notices;
-    return notices.where((notice) => notice["category"] == selectedFilter).toList();
+    return notices
+        .where((notice) => notice["category"] == selectedFilter)
+        .toList();
   }
 
   // Helper to map category code -> localized label
@@ -119,7 +129,8 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
 
   // Map each notice textKey to AppLocalizations getter.
   // Add new keys to your .arb files and generated AppLocalizations.
-  String _localizedNoticeText(Map<String, dynamic> notice, AppLocalizations l10n) {
+  String _localizedNoticeText(
+      Map<String, dynamic> notice, AppLocalizations l10n) {
     switch (notice['textKey']) {
       case 'notice1_text':
         return l10n.notice1Text;
@@ -170,7 +181,8 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                          icon:
+                              const Icon(Icons.arrow_back, color: Colors.white),
                           onPressed: () => Navigator.pop(context),
                         ),
                         const SizedBox(width: 8),
@@ -180,7 +192,8 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                             color: Colors.white.withAlpha(51),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.notifications_active, color: Colors.white, size: 24),
+                          child: const Icon(Icons.notifications_active,
+                              color: Colors.white, size: 24),
                         ),
                         const SizedBox(width: 12),
                         Column(
@@ -227,17 +240,24 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                               });
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 12),
                               decoration: BoxDecoration(
-                                color: isSelected ? Colors.white : Colors.transparent,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.transparent,
                                 borderRadius: BorderRadius.circular(25),
                               ),
                               child: Center(
                                 child: Text(
                                   _filterLabel(filterCode, l10n),
                                   style: TextStyle(
-                                    color: isSelected ? const Color(0xFF4CAF50) : Colors.white,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                    color: isSelected
+                                        ? const Color(0xFF4CAF50)
+                                        : Colors.white,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
                                     fontSize: 15,
                                   ),
                                 ),
@@ -268,7 +288,8 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                         offset: Offset(0, 20 * (1 - value)),
                         child: Opacity(
                           opacity: value,
-                          child: _buildNoticeCard(context, filteredNotices[index], l10n),
+                          child: _buildNoticeCard(
+                              context, filteredNotices[index], l10n),
                         ),
                       );
                     },
@@ -282,7 +303,8 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
     );
   }
 
-  Widget _buildNoticeCard(BuildContext context, Map<String, dynamic> notice, AppLocalizations l10n) {
+  Widget _buildNoticeCard(BuildContext context, Map<String, dynamic> notice,
+      AppLocalizations l10n) {
     final isNew = notice['isNew'] as bool? ?? false;
     final catCode = notice['category'] as String? ?? 'other';
     final text = _localizedNoticeText(notice, l10n);
@@ -340,9 +362,11 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: (notice["color"] as Color).withAlpha(38),
+                                  color:
+                                      (notice["color"] as Color).withAlpha(38),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -357,17 +381,22 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                               const Spacer(),
                               if (isNew)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
-                                      colors: [Color(0xFFE53935), Color(0xFFEF5350)],
+                                      colors: [
+                                        Color(0xFFE53935),
+                                        Color(0xFFEF5350)
+                                      ],
                                     ),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.fiber_new, size: 14, color: Colors.white),
+                                      const Icon(Icons.fiber_new,
+                                          size: 14, color: Colors.white),
                                       const SizedBox(width: 4),
                                       Text(
                                         l10n.labelNew,
@@ -408,7 +437,8 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
+                      Icon(Icons.calendar_today,
+                          size: 14, color: Colors.grey[600]),
                       const SizedBox(width: 6),
                       Text(
                         notice["date"],
@@ -444,7 +474,8 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
     );
   }
 
-  void _showNoticeDetails(BuildContext context, Map<String, dynamic> notice, AppLocalizations l10n) {
+  void _showNoticeDetails(BuildContext context, Map<String, dynamic> notice,
+      AppLocalizations l10n) {
     final catCode = notice['category'] as String? ?? 'other';
     final text = _localizedNoticeText(notice, l10n);
 
@@ -500,9 +531,11 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(
-                                  color: (notice["color"] as Color).withAlpha(38),
+                                  color:
+                                      (notice["color"] as Color).withAlpha(38),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
@@ -517,11 +550,13 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                               const SizedBox(height: 6),
                               Row(
                                 children: [
-                                  Icon(Icons.calendar_today, size: 12, color: Colors.grey[600]),
+                                  Icon(Icons.calendar_today,
+                                      size: 12, color: Colors.grey[600]),
                                   const SizedBox(width: 4),
                                   Text(
                                     notice["date"],
-                                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.grey[600]),
                                   ),
                                 ],
                               ),
@@ -530,7 +565,8 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                         ),
                         if (notice["isNew"])
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
                                 colors: [Color(0xFFE53935), Color(0xFFEF5350)],
@@ -564,14 +600,16 @@ class _NoticeBoardPageState extends State<NoticeBoardPage> with TickerProviderSt
                       decoration: BoxDecoration(
                         color: const Color(0xFF4CAF50).withAlpha(26),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF4CAF50).withAlpha(51)),
+                        border: Border.all(
+                            color: const Color(0xFF4CAF50).withAlpha(51)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.info_outline, color: Color(0xFF4CAF50), size: 20),
+                              const Icon(Icons.info_outline,
+                                  color: Color(0xFF4CAF50), size: 20),
                               const SizedBox(width: 8),
                               Text(
                                 l10n.noticeDetails,

@@ -1,11 +1,9 @@
-// lib/screens/login_page.dart
 
 import 'package:flutter/material.dart';
-// REMOVED: import 'package:supabase_flutter/supabase_flutter.dart'; // No longer needed
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_localizations.dart';
-import '../main.dart'; // for FarmersApp.setLocale
-import '../services/api_service.dart'; // 💡 NEW: Import the custom API service
+import '../main.dart'; 
+import '../services/api_service.dart'; 
 import 'home_page.dart';
 import 'signup_page.dart';
 
@@ -23,7 +21,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  // 💡 NEW: Initialize API service
   final ApiService _apiService = ApiService();
 
   late AnimationController _animationController;
@@ -84,7 +81,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     _animationController.forward();
   }
 
-  /// Loads the language saved in SharedPreferences and sets the app locale.
   Future<void> _loadSavedLanguage() async {
     final prefs = await SharedPreferences.getInstance();
     final savedLangCode = prefs.getString("language");
@@ -94,12 +90,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     });
 
     if (savedLangCode != null) {
-      // Assuming FarmersApp is in main.dart and its setLocale helper is available
       FarmersApp.setLocale(context, Locale(savedLangCode));
     }
   }
 
-  /// 💡 MIGRATED: Handles standard email/password login using Vercel backend.
   Future<void> _login() async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
@@ -112,28 +106,21 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     setState(() => _isLoading = true);
 
     try {
-      // 💡 REPLACED: Supabase.instance.client.auth.signInWithPassword(...)
       await _apiService.loginUser(
         _emailController.text,
         _passwordController.text,
       );
 
-      // --- Success Logic ---
-      // Token is now saved inside _apiService.loginUser
-      
-      // Save selected language locally upon successful login
       final prefs = await SharedPreferences.getInstance();
       if (_selectedLanguage != null) {
         await prefs.setString("language", _selectedLanguage!);
       }
 
       if (!mounted) return;
-      // Navigate to home page
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (_) => const HomePage()));
           
     } catch (e) {
-      // Catch exceptions thrown by _apiService.loginUser
       _showCustomSnackBar(l10n.loginFailed, isError: true);
       debugPrint("Login Error: $e");
     } finally {
@@ -141,35 +128,15 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     }
   }
 
-  /// ⚠️ MIGRATED/TEMPORARILY REMOVED: Google OAuth sign-in.
-  /// This must be entirely re-architected on the Vercel backend side.
   Future<void> _loginWithGoogle() async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
 
     _showCustomSnackBar("Google Login is not yet configured for Vercel backend.", isError: true);
     
-    // The original logic is commented out/replaced as it relies heavily on Supabase's built-in SDK.
-    /*
-    setState(() => _isLoading = true);
-    try {
-      await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'io.supabase.flutter://login-callback/',
-      );
-    } on AuthException catch (error) {
-      _showCustomSnackBar(error.message, isError: true);
-    } catch (e) {
-      _showCustomSnackBar(l10n.loginFailed, isError: true);
-      debugPrint("Google Sign-In Error: $e");
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-    */
   }
 
   void _showCustomSnackBar(String message, {bool isError = false}) {
-    // ... (Snackbar implementation remains the same)
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -191,7 +158,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 
   Widget _buildGradientBackground() {
-    // ... (unchanged)
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -223,7 +189,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 
   Widget _buildFloatingElements() {
-    // ... (unchanged)
     return Stack(
       children: [
         Positioned(
@@ -278,7 +243,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     TextInputType keyboardType = TextInputType.text,
     Widget? suffixIcon,
   }) {
-    // ... (unchanged)
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -328,7 +292,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     Color textColor = Colors.white,
     double fontSize = 16,
   }) {
-    // ... (unchanged)
     return Container(
       width: double.infinity,
       height: 46,
@@ -445,7 +408,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  // Compact Logo
                                   Container(
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
@@ -482,7 +444,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   ),
                                   const SizedBox(height: 16),
 
-                                  // Compact Welcome text
                                   ShaderMask(
                                     shaderCallback: (bounds) => LinearGradient(
                                       colors: [
@@ -511,7 +472,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   ),
                                   const SizedBox(height: 20),
 
-                                  // Email Field
                                   _buildCustomTextField(
                                     controller: _emailController,
                                     labelText: l10n.email,
@@ -520,7 +480,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   ),
                                   const SizedBox(height: 12),
 
-                                  // Password Field
                                   _buildCustomTextField(
                                     controller: _passwordController,
                                     labelText: l10n.password,
@@ -540,7 +499,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   ),
                                   const SizedBox(height: 12),
 
-                                  // Language Dropdown
                                   Container(
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(12),
@@ -596,7 +554,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   ),
                                   const SizedBox(height: 18),
 
-                                  // Email Login Button
                                   _buildGradientButton(
                                     text: l10n.login,
                                     onPressed: _login,
@@ -605,7 +562,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   ),
                                   const SizedBox(height: 16),
 
-                                  // OR Separator
                                   Row(
                                     children: [
                                       Expanded(child: Divider(color: Colors.grey.shade400)),
@@ -625,7 +581,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   ),
                                   const SizedBox(height: 16),
 
-                                  // Google Login Button
                                   Container(
                                     width: double.infinity,
                                     height: 46,
@@ -673,7 +628,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
                                   const SizedBox(height: 20),
 
-                                  // Sign Up Link
                                   TextButton(
                                     onPressed: () {
                                       Navigator.pushReplacement(

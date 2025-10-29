@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 // Note: We renamed supabase_service.dart to api_service.dart
-import '../services/api_service.dart'; 
+import '../services/api_service.dart';
 
 class AdminFeedbackPage extends StatefulWidget {
   const AdminFeedbackPage({super.key});
@@ -13,8 +13,8 @@ class AdminFeedbackPage extends StatefulWidget {
 
 class _AdminFeedbackPageState extends State<AdminFeedbackPage> {
   // 💡 MIGRATED: Use the new ApiService class
-  final ApiService apiService = ApiService(); 
-  
+  final ApiService apiService = ApiService();
+
   bool _isLoading = true;
   List<Map<String, dynamic>> _feedbacks = [];
 
@@ -26,11 +26,11 @@ class _AdminFeedbackPageState extends State<AdminFeedbackPage> {
 
   Future<void> _fetchFeedbacks() async {
     setState(() => _isLoading = true);
-    
+
     try {
       // 💡 MIGRATED: Call the new apiService.getFeedbackOnce()
       final feedbacks = await apiService.getFeedbackOnce();
-      
+
       if (mounted) {
         setState(() {
           _feedbacks = feedbacks;
@@ -43,7 +43,8 @@ class _AdminFeedbackPageState extends State<AdminFeedbackPage> {
         // Show error message on fetch failure
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Failed to load feedback: ${e.toString().replaceFirst('Exception: ', '')}"),
+            content: Text(
+                "Failed to load feedback: ${e.toString().replaceFirst('Exception: ', '')}"),
             backgroundColor: Colors.red,
           ),
         );
@@ -59,7 +60,9 @@ class _AdminFeedbackPageState extends State<AdminFeedbackPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _isLoading ? null : _fetchFeedbacks, // Disable refresh while loading
+            onPressed: _isLoading
+                ? null
+                : _fetchFeedbacks, // Disable refresh while loading
           ),
         ],
       ),
@@ -85,7 +88,8 @@ class _AdminFeedbackPageState extends State<AdminFeedbackPage> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: Image.network(
-                                  data["image_url"], // 💡 CHECK: Ensure key matches your Node.js response
+                                  data[
+                                      "image_url"], // 💡 CHECK: Ensure key matches your Node.js response
                                   height: 120,
                                   fit: BoxFit.cover,
                                 ),
@@ -96,11 +100,11 @@ class _AdminFeedbackPageState extends State<AdminFeedbackPage> {
                           // Use "created_at" which is the standard field name used in api_service.dart
                           data["created_at"] != null
                               ? DateTime.parse(data["created_at"])
-                                    .toLocal()
-                                    .toString()
+                                  .toLocal()
+                                  .toString()
                               : "",
-                          style: const TextStyle(
-                              fontSize: 10, color: Colors.grey),
+                          style:
+                              const TextStyle(fontSize: 10, color: Colors.grey),
                         ),
                       ),
                     );

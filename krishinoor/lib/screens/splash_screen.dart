@@ -2,7 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'home_page.dart';
 import 'login_page.dart';
 
@@ -56,11 +56,11 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
-    
+
     // 💡 REVISED: Call the async check immediately, but allow animation time.
     _checkSessionAndNavigate(const Duration(seconds: 4));
   }
-  
+
   // 💡 NEW HELPER FUNCTION for clarity
   Future<void> _checkSessionAndNavigate(Duration delay) async {
     await Future.delayed(delay); // Wait for animation delay
@@ -117,7 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         ),
         child: Stack(
-          children:[
+          children: [
             // Decorative elements
             Positioned(
               top: 60,
@@ -197,8 +197,8 @@ class _SplashScreenState extends State<SplashScreen>
                                     offset: const Offset(0, 15),
                                   ),
                                   BoxShadow(
-                                    color: const Color(0xFF2ecc71)
-                                        .withAlpha(102),
+                                    color:
+                                        const Color(0xFF2ecc71).withAlpha(102),
                                     blurRadius: 40,
                                     spreadRadius: 5,
                                   ),
@@ -309,10 +309,8 @@ class _SplashScreenState extends State<SplashScreen>
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(10),
                               child: LinearProgressIndicator(
-                                backgroundColor:
-                                    Colors.white.withAlpha(76),
-                                valueColor:
-                                    const AlwaysStoppedAnimation<Color>(
+                                backgroundColor: Colors.white.withAlpha(76),
+                                valueColor: const AlwaysStoppedAnimation<Color>(
                                   Color(0xFF2ecc71),
                                 ),
                                 minHeight: 6,

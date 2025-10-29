@@ -12,12 +12,13 @@ class WeatherPage extends StatefulWidget {
   State<WeatherPage> createState() => _WeatherPageState();
 }
 
-class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin {
+class _WeatherPageState extends State<WeatherPage>
+    with TickerProviderStateMixin {
   String? city;
   String apiKey = "2f184182c9504a3092a115647251509";
   Map<String, dynamic>? weatherData;
   String? errorMessage;
-  
+
   late AnimationController _animationController;
   late AnimationController _cardAnimationController;
   late Animation<double> _fadeAnimation;
@@ -39,7 +40,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -47,7 +48,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -119,7 +120,8 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
     }
   }
 
-  String getFarmingTipFromData(Map<String, dynamic> data, AppLocalizations l10n) {
+  String getFarmingTipFromData(
+      Map<String, dynamic> data, AppLocalizations l10n) {
     final condition = data['condition']['text'].toString().toLowerCase();
     final temp = data['temp_c'] ?? data['avgtemp_c'] ?? 0;
     final humidity = data['humidity'] ?? data['avghumidity'] ?? 60;
@@ -143,10 +145,11 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
 
   Color _getGradientColor() {
     if (weatherData == null) return const Color(0xFF4facfe);
-    
-    final condition = weatherData!['current']['condition']['text'].toLowerCase();
+
+    final condition =
+        weatherData!['current']['condition']['text'].toLowerCase();
     final isDay = weatherData!['current']['is_day'] == 1;
-    
+
     if (condition.contains('rain') || condition.contains('storm')) {
       return isDay ? const Color(0xFF536976) : const Color(0xFF292E49);
     } else if (condition.contains('cloud')) {
@@ -208,18 +211,18 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
                                 child: _buildCurrentWeatherCard(l10n),
                               ),
                               const SizedBox(height: 24),
-                              
+
                               // Weather Details Grid
                               SlideTransition(
                                 position: _slideAnimation,
                                 child: _buildWeatherDetailsGrid(),
                               ),
                               const SizedBox(height: 24),
-                              
+
                               // 7-Day Forecast
                               _buildForecastSection(l10n),
                               const SizedBox(height: 24),
-                              
+
                               // Hourly Forecast
                               _buildHourlyForecastSection(l10n),
                               const SizedBox(height: 100),
@@ -348,7 +351,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
             ),
           ),
           const SizedBox(height: 20),
-          
+
           // Weather Icon and Temperature
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -373,7 +376,7 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
                 ),
               ),
               const SizedBox(width: 20),
-              
+
               // Temperature
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,9 +402,9 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
               ),
             ],
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Feels like temperature
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -459,7 +462,8 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
     );
   }
 
-  Widget _buildWeatherDetailCard(String title, String value, IconData icon, Color color) {
+  Widget _buildWeatherDetailCard(
+      String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -631,9 +635,11 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
           height: 140,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: weatherData!['forecast']['forecastday'][0]['hour'].length,
+            itemCount:
+                weatherData!['forecast']['forecastday'][0]['hour'].length,
             itemBuilder: (context, index) {
-              final hour = weatherData!['forecast']['forecastday'][0]['hour'][index];
+              final hour =
+                  weatherData!['forecast']['forecastday'][0]['hour'][index];
               final time = hour['time'].toString().split(" ")[1];
               final icon = hour['condition']['icon'];
               final temp = hour['temp_c'].round();
@@ -641,7 +647,8 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
               return Container(
                 width: 80,
                 margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(38),
                   borderRadius: BorderRadius.circular(20),
@@ -689,15 +696,25 @@ class _WeatherPageState extends State<WeatherPage> with TickerProviderStateMixin
   String _formatDate(String date) {
     final DateTime dateTime = DateTime.parse(date);
     final now = DateTime.now();
-    
+
     if (dateTime.day == now.day) {
       return "Today";
     } else if (dateTime.day == now.day + 1) {
       return "Tomorrow";
     } else {
       const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
       ];
       return "${dateTime.day} ${months[dateTime.month - 1]}";
     }

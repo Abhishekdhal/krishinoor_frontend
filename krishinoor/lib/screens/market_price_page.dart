@@ -9,10 +9,11 @@ class MarketPricePage extends StatefulWidget {
   State<MarketPricePage> createState() => _MarketPricePageState();
 }
 
-class _MarketPricePageState extends State<MarketPricePage> with TickerProviderStateMixin {
+class _MarketPricePageState extends State<MarketPricePage>
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
-  
+
   final List<Map<String, dynamic>> products = const [
     {
       "name": "Urea (50 kg)",
@@ -126,7 +127,8 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
                               color: Colors.white.withAlpha(51),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Icon(Icons.store, color: Colors.white, size: 24),
+                            child: Icon(Icons.store,
+                                color: Colors.white, size: 24),
                           ),
                           SizedBox(width: 12),
                           Column(
@@ -290,7 +292,8 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.trending_up, size: 14, color: Colors.green),
+                          Icon(Icons.trending_up,
+                              size: 14, color: Colors.green),
                           const SizedBox(width: 4),
                           Text(
                             'Market Active',
@@ -306,7 +309,8 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: best == "Mandi"
@@ -345,11 +349,14 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _priceTile(l10n.amazon, product['amazon'], best == "Amazon", Colors.orange),
+                  _priceTile(l10n.amazon, product['amazon'], best == "Amazon",
+                      Colors.orange),
                   Container(width: 1, height: 40, color: Colors.grey[300]),
-                  _priceTile(l10n.flipkart, product['flipkart'], best == "Flipkart", Colors.blue),
+                  _priceTile(l10n.flipkart, product['flipkart'],
+                      best == "Flipkart", Colors.blue),
                   Container(width: 1, height: 40, color: Colors.grey[300]),
-                  _priceTile(l10n.mandi, product['mandi'], best == "Mandi", Color(0xFF4CAF50)),
+                  _priceTile(l10n.mandi, product['mandi'], best == "Mandi",
+                      Color(0xFF4CAF50)),
                 ],
               ),
             ),
@@ -359,7 +366,8 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
     );
   }
 
-  Widget _priceTile(String label, int price, bool highlight, Color accentColor) {
+  Widget _priceTile(
+      String label, int price, bool highlight, Color accentColor) {
     return Column(
       children: [
         Text(
@@ -394,7 +402,8 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
     );
   }
 
-  Widget _buildTrendChart(BuildContext context, List<Map<String, dynamic>> filteredProducts) {
+  Widget _buildTrendChart(
+      BuildContext context, List<Map<String, dynamic>> filteredProducts) {
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
@@ -460,7 +469,8 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
                       getTitlesWidget: (value, meta) {
                         return Text(
                           '₹${value.toInt()}',
-                          style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                          style:
+                              TextStyle(fontSize: 10, color: Colors.grey[600]),
                         );
                       },
                     ),
@@ -473,13 +483,16 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
                           l10n.day(value.toInt() + 1),
-                          style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                          style:
+                              TextStyle(fontSize: 10, color: Colors.grey[600]),
                         ),
                       ),
                     ),
                   ),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
                 ),
                 borderData: FlBorderData(show: false),
                 lineBarsData: filteredProducts.asMap().entries.map((entry) {
@@ -540,7 +553,8 @@ class _MarketPricePageState extends State<MarketPricePage> with TickerProviderSt
   }
 
   List<FlSpot> _mapTrend(List<int> trend) {
-    return List.generate(trend.length, (i) => FlSpot(i.toDouble(), trend[i].toDouble()));
+    return List.generate(
+        trend.length, (i) => FlSpot(i.toDouble(), trend[i].toDouble()));
   }
 
   String _getBestOption(Map<String, dynamic> product) {

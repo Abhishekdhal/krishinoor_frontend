@@ -9,7 +9,8 @@ class SoilHealthPage extends StatefulWidget {
   State<SoilHealthPage> createState() => _SoilHealthPageState();
 }
 
-class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStateMixin {
+class _SoilHealthPageState extends State<SoilHealthPage>
+    with TickerProviderStateMixin {
   final TextEditingController phController = TextEditingController();
   final TextEditingController nController = TextEditingController();
   final TextEditingController pController = TextEditingController();
@@ -60,7 +61,8 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
           content: Text(l10n.invalidValues),
           backgroundColor: Colors.orange,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       return;
@@ -210,11 +212,15 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                                 padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                                    colors: [
+                                      Color(0xFF4CAF50),
+                                      Color(0xFF66BB6A)
+                                    ],
                                   ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Icon(Icons.science, color: Colors.white, size: 20),
+                                child: Icon(Icons.science,
+                                    color: Colors.white, size: 20),
                               ),
                               SizedBox(width: 12),
                               Text(
@@ -231,25 +237,29 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                           TextField(
                             controller: phController,
                             keyboardType: TextInputType.number,
-                            decoration: _inputDecoration(l10n.phLabel, Icons.water_drop),
+                            decoration: _inputDecoration(
+                                l10n.phLabel, Icons.water_drop),
                           ),
                           SizedBox(height: 12),
                           TextField(
                             controller: nController,
                             keyboardType: TextInputType.number,
-                            decoration: _inputDecoration(l10n.nLabel, Icons.science_outlined),
+                            decoration: _inputDecoration(
+                                l10n.nLabel, Icons.science_outlined),
                           ),
                           SizedBox(height: 12),
                           TextField(
                             controller: pController,
                             keyboardType: TextInputType.number,
-                            decoration: _inputDecoration(l10n.pLabel, Icons.science_outlined),
+                            decoration: _inputDecoration(
+                                l10n.pLabel, Icons.science_outlined),
                           ),
                           SizedBox(height: 12),
                           TextField(
                             controller: kController,
                             keyboardType: TextInputType.number,
-                            decoration: _inputDecoration(l10n.kLabel, Icons.science_outlined),
+                            decoration: _inputDecoration(
+                                l10n.kLabel, Icons.science_outlined),
                           ),
                           SizedBox(height: 16),
                           SizedBox(
@@ -298,11 +308,15 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                                   padding: EdgeInsets.all(8),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
-                                      colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                                      colors: [
+                                        Color(0xFF4CAF50),
+                                        Color(0xFF66BB6A)
+                                      ],
                                     ),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child: Icon(Icons.bar_chart, color: Colors.white, size: 20),
+                                  child: Icon(Icons.bar_chart,
+                                      color: Colors.white, size: 20),
                                 ),
                                 SizedBox(width: 12),
                                 Text(
@@ -330,7 +344,9 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                                         getTitlesWidget: (value, meta) {
                                           return Text(
                                             value.toInt().toString(),
-                                            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                                            style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.grey[600]),
                                           );
                                         },
                                       ),
@@ -339,7 +355,11 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                                       sideTitles: SideTitles(
                                         showTitles: true,
                                         getTitlesWidget: (value, meta) {
-                                          final titles = [l10n.nLabel, l10n.pLabel, l10n.kLabel];
+                                          final titles = [
+                                            l10n.nLabel,
+                                            l10n.pLabel,
+                                            l10n.kLabel
+                                          ];
                                           final text = titles[value.toInt()];
                                           return Padding(
                                             padding: EdgeInsets.only(top: 8),
@@ -355,8 +375,12 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                                         },
                                       ),
                                     ),
-                                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                    rightTitles: AxisTitles(
+                                        sideTitles:
+                                            SideTitles(showTitles: false)),
+                                    topTitles: AxisTitles(
+                                        sideTitles:
+                                            SideTitles(showTitles: false)),
                                   ),
                                   borderData: FlBorderData(show: false),
                                   gridData: FlGridData(
@@ -378,11 +402,15 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                                           toY: nutrientLevels["N"]!.toDouble(),
                                           width: 30,
                                           gradient: LinearGradient(
-                                            colors: [Color(0xFF2196F3), Color(0xFF42A5F5)],
+                                            colors: [
+                                              Color(0xFF2196F3),
+                                              Color(0xFF42A5F5)
+                                            ],
                                             begin: Alignment.bottomCenter,
                                             end: Alignment.topCenter,
                                           ),
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
                                         ),
                                       ],
                                     ),
@@ -393,11 +421,15 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                                           toY: nutrientLevels["P"]!.toDouble(),
                                           width: 30,
                                           gradient: LinearGradient(
-                                            colors: [Color(0xFFE53935), Color(0xFFEF5350)],
+                                            colors: [
+                                              Color(0xFFE53935),
+                                              Color(0xFFEF5350)
+                                            ],
                                             begin: Alignment.bottomCenter,
                                             end: Alignment.topCenter,
                                           ),
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
                                         ),
                                       ],
                                     ),
@@ -408,11 +440,15 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                                           toY: nutrientLevels["K"]!.toDouble(),
                                           width: 30,
                                           gradient: LinearGradient(
-                                            colors: [Color(0xFFFF9800), Color(0xFFFFA726)],
+                                            colors: [
+                                              Color(0xFFFF9800),
+                                              Color(0xFFFFA726)
+                                            ],
                                             begin: Alignment.bottomCenter,
                                             end: Alignment.topCenter,
                                           ),
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
                                         ),
                                       ],
                                     ),
@@ -448,11 +484,15 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                                   padding: EdgeInsets.all(8),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
-                                      colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                                      colors: [
+                                        Color(0xFF4CAF50),
+                                        Color(0xFF66BB6A)
+                                      ],
                                     ),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child: Icon(Icons.lightbulb, color: Colors.white, size: 20),
+                                  child: Icon(Icons.lightbulb,
+                                      color: Colors.white, size: 20),
                                 ),
                                 SizedBox(width: 12),
                                 Text(
@@ -510,11 +550,15 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
                                 padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                                    colors: [
+                                      Color(0xFF4CAF50),
+                                      Color(0xFF66BB6A)
+                                    ],
                                   ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Icon(Icons.check_circle, color: Colors.white, size: 20),
+                                child: Icon(Icons.check_circle,
+                                    color: Colors.white, size: 20),
                               ),
                               SizedBox(width: 12),
                               Text(
@@ -576,14 +620,6 @@ class _SoilHealthPageState extends State<SoilHealthPage> with TickerProviderStat
     );
   }
 }
-
-
-
-
-
-
-
-
 
 // import 'package:flutter/material.dart';
 // import 'package:fl_chart/fl_chart.dart';

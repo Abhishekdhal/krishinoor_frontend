@@ -26,9 +26,9 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
   bool _isListening = false;
   bool _isLoading = false;
   File? _selectedImage;
-  
+
   // FIX: Make apiKey and _model late
-  late final String apiKey; 
+  late final String apiKey;
   late GenerativeModel _model;
   bool _modelInitialized = false; // Track if model is ready
 
@@ -46,18 +46,19 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    
+
     // FIX: Initialize apiKey and _model safely inside initState
     try {
       // Dart's non-nullable access is safe here since dotenv is loaded in main.dart
       apiKey = dotenv.env['GEMINI_API_KEY']!;
     } catch (e) {
       if (kDebugMode) {
-        debugPrint("FATAL ERROR: Failed to read GEMINI_API_KEY. Ensure it is set in .env.");
+        debugPrint(
+            "FATAL ERROR: Failed to read GEMINI_API_KEY. Ensure it is set in .env.");
       }
       apiKey = "";
     }
-    
+
     if (apiKey.isNotEmpty) {
       _model = GenerativeModel(
         model: "gemini-2.5-flash",
@@ -67,7 +68,7 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
     }
 
     _setupAnimations();
-    
+
     // Call in post-frame callback to ensure context is available for l10n
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _addWelcomeMessage();
@@ -151,16 +152,19 @@ class _AIBotPageState extends State<AIBotPage> with TickerProviderStateMixin {
     final l10n = AppLocalizations.of(context)!; // Get L10n object
 
     if (!isImage && _controller.text.trim().isEmpty) return;
-    
+
     // Check if model is initialized before proceeding
     if (!_modelInitialized) {
       setState(() {
-        messages.add({"role": "bot", "text": "⚠️ Cannot send message. Gemini model failed to initialize due to missing API Key."});
+        messages.add({
+          "role": "bot",
+          "text":
+              "⚠️ Cannot send message. Gemini model failed to initialize due to missing API Key."
+        });
       });
       _scrollToBottom();
       return;
     }
-
 
     final userText = _controller.text.trim();
     String? base64Image;
@@ -790,4 +794,3 @@ class _TypingDotsState extends State<_TypingDots>
     );
   }
 }
-
