@@ -9,17 +9,17 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await dotenv.load(fileName: ".env");
-    debugPrint("✅ Loaded .env file");
-    debugPrint("✅ Loaded .env file");
+    debugPrint("Loaded .env file");
+    debugPrint("Loaded .env file");
     kBaseUrl = dotenv.env['VERCEL_BASE_URL'];
     if (kBaseUrl == null) {
       debugPrint(
-          "❌ Could not find VERCEL_BASE_URL in .env file. API calls will likely fail.");
+          "Could not find VERCEL_BASE_URL in .env file. API calls will likely fail.");
     } else {
-      debugPrint("✅ Vercel Base URL loaded: $kBaseUrl");
+      debugPrint("Vercel Base URL loaded: $kBaseUrl");
     }
   } catch (e) {
-    debugPrint("❌ Could not load .env file: $e");
+    debugPrint("Could not load .env file: $e");
   }
   final prefs = await SharedPreferences.getInstance();
   final savedLangCode = prefs.getString("language");
