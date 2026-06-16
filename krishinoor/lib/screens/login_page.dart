@@ -115,6 +115,13 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         clientId: webClientId,
         scopes: ['email', 'profile'],
       );
+      
+      try {
+        await googleSignIn.signOut();
+      } catch (e) {
+        debugPrint("Google SignOut Error before sign-in: $e");
+      }
+
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         setState(() => _isLoading = false);

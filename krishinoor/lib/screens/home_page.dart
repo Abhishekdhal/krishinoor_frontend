@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
@@ -100,6 +101,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     try {
+      // Sign out from Google if signed in
+      try {
+        final webClientId = dotenv.env['GOOGLE_WEB_CLIENT_ID'];
+        final GoogleSignIn googleSignIn = GoogleSignIn(
+          clientId: webClientId,
+          scopes: ['email', 'profile'],
+        );
+        await googleSignIn.signOut();
+      } catch (googleError) {
+        debugPrint("Google SignOut Error during logout: $googleError");
+      }
+
       await _apiService.logoutUser();
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
