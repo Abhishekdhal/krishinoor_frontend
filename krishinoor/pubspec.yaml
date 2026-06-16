@@ -26,7 +26,7 @@ dependencies:
   # AUTHENTICATION & SESSION MANAGEMENT
   # Replaces Supabase Auth SDK for secure token storage
   flutter_secure_storage: ^9.2.4 
-  # REMOVED: google_sign_in: ^6.2.1 (The sign-in flow must be rebuilt on Vercel)
+  google_sign_in: ^6.2.1
   
   # Local storage
   shared_preferences: ^2.3.3
@@ -57,7 +57,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.14.4
 
 flutter_launcher_icons:

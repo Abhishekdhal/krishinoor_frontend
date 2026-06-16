@@ -109,6 +109,32 @@ class ApiService {
       throw Exception(data['message'] ?? 'Registration failed.');
     }
   }
+  Future<void> loginOrSignupWithGoogle({
+    required String idToken,
+    required String language,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/api/auth/google'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'idToken': idToken,
+        'language': language,
+      }),
+    );
+    final data = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      final token = data['token'] as String?;
+      final userEmail = data['user']?['email'] as String?;
+      if (token != null && userEmail != null) {
+        await _saveToken(token);
+        await _storage.write(key: _kUserEmailKey, value: userEmail);
+      } else {
+        throw Exception('Google Sign-In failed: No token received.');
+      }
+    } else {
+      throw Exception(data['message'] ?? 'Google Sign-In failed.');
+    }
+  }
   Future<void> loginUser(String email, String password) async {
     try {
       final response = await http.post(

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_localizations.dart';
 import '../main.dart';
@@ -69,6 +71,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   Future<void> _loadSavedLanguage() async {
     final prefs = await SharedPreferences.getInstance();
     final savedLangCode = prefs.getString("language");
+    if (!mounted) return;
     setState(() {
       _selectedLanguage = savedLangCode;
     });
@@ -104,9 +107,46 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     }
   }
   Future<void> _loginWithGoogle() async {
-    if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
-    _showCustomSnackBar("Google Login is not yet configured for Vercel backend.", isError: true);
+    setState(() => _isLoading = true);
+    try {
+      final webClientId = dotenv.env['GOOGLE_WEB_CLIENT_ID'];
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        clientId: webClientId,
+        scopes: ['email', 'profile'],
+      );
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+
+      if (idToken == null) {
+        throw Exception('Failed to obtain Google ID Token.');
+      }
+
+      await _apiService.loginOrSignupWithGoogle(
+        idToken: idToken,
+        language: _selectedLanguage ?? 'en',
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString("user_email", googleUser.email);
+      if (_selectedLanguage != null) {
+        await prefs.setString("language", _selectedLanguage!);
+      }
+      
+      if (!mounted) return;
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (_) => const HomePage()));
+    } catch (e) {
+      _showCustomSnackBar(l10n.loginFailed, isError: true);
+      debugPrint("Google Login Error: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
   void _showCustomSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(

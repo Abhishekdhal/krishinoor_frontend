@@ -109,7 +109,7 @@ class _SupplementsPageState extends State<SupplementsPage>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                flex: 3,
+                flex: 11,
                 child: Stack(
                   children: [
                     ClipRRect(
@@ -142,27 +142,27 @@ class _SupplementsPageState extends State<SupplementsPage>
                 ),
               ),
               Expanded(
-                flex: 2,
+                flex: 9,
                 child: Padding(
-                  padding: const EdgeInsets.all(12.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         product["name"]!,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: Colors.green.shade800,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         product["description"]!,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           color: Colors.grey[600],
                         ),
                         maxLines: 2,
@@ -176,7 +176,7 @@ class _SupplementsPageState extends State<SupplementsPage>
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green.shade600,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -185,12 +185,12 @@ class _SupplementsPageState extends State<SupplementsPage>
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: const [
-                              Icon(Icons.shopping_cart, size: 18),
-                              SizedBox(width: 8),
+                              Icon(Icons.shopping_cart, size: 16),
+                              SizedBox(width: 6),
                               Text(
                                 "Buy Now",
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -295,7 +295,7 @@ class _SupplementsPageState extends State<SupplementsPage>
                     crossAxisCount: 2,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio: 0.7,
+                    childAspectRatio: 0.55,
                   ),
                   itemCount: products.length,
                   itemBuilder: (context, index) {

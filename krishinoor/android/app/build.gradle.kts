@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.abhishek.farmingapp"
+    namespace = "com.krishinoor"
     compileSdk = 35
     ndkVersion = "27.0.12077973"
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.abhishek.farmingapp"
+        applicationId = "com.krishinoor"
         minSdk = 23
         targetSdk = 34
         versionCode = 1

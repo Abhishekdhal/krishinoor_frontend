@@ -150,6 +150,7 @@ class _ProfilePageState extends State<ProfilePage>
         await prefs.setString("phone", _phoneController.text.trim());
         await prefs.setString("language", _selectedLanguage!);
         if (_selectedLanguage != null) {
+          if (!mounted) return;
           FarmersApp.setLocale(context, Locale(_selectedLanguage!));
         }
         if (!mounted) return;

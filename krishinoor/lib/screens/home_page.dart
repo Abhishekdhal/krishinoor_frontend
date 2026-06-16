@@ -123,9 +123,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
   Future<void> _loadWeatherData() async {
     if (_apiKey.isEmpty) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint("Skipping weather load due to missing API Key.");
-      if (mounted) setState(() => _isLoadingWeather = false);
+      }
+      if (mounted) {
+        setState(() => _isLoadingWeather = false);
+      }
       return;
     }
     try {

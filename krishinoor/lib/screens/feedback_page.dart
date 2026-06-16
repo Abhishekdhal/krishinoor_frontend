@@ -132,7 +132,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
       body: Column(
         children: [
           Container(
-            height: 140,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
@@ -148,34 +147,32 @@ class _FeedbackPageState extends State<FeedbackPage> {
               ),
             ),
             child: SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    child: Row(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                child: Column(
+                  children: [
+                    Row(
                       children: [
                         IconButton(
                           icon: const Icon(Icons.arrow_back,
                               color: Colors.white, size: 28),
                           onPressed: () => Navigator.pop(context),
                         ),
-                        const Spacer(),
                       ],
                     ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    loc.feedbackTitle.toUpperCase(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                      letterSpacing: 1.2,
+                    const SizedBox(height: 4),
+                    Text(
+                      loc.feedbackTitle.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                        letterSpacing: 1.2,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

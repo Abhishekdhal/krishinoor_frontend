@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../l10n/app_localizations.dart';
+
+
 class SoilHealthPage extends StatefulWidget {
   const SoilHealthPage({super.key});
   @override
   State<SoilHealthPage> createState() => _SoilHealthPageState();
 }
+
 class _SoilHealthPageState extends State<SoilHealthPage>
     with TickerProviderStateMixin {
   final TextEditingController phController = TextEditingController();
@@ -16,9 +22,27 @@ class _SoilHealthPageState extends State<SoilHealthPage>
   Map<String, int> nutrientLevels = {"N": 0, "P": 0, "K": 0};
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
+  
+  late final String apiKey;
+  late GenerativeModel _model;
+  bool _modelInitialized = false;
+  bool _isAnalyzing = false;
+
   @override
   void initState() {
     super.initState();
+    try {
+      apiKey = dotenv.env['GEMINI_API_KEY']!;
+    } catch (e) {
+      apiKey = "";
+    }
+    if (apiKey.isNotEmpty) {
+      _model = GenerativeModel(
+        model: "gemini-2.5-flash",
+        apiKey: apiKey,
+      );
+      _modelInitialized = true;
+    }
     _controller = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -37,7 +61,7 @@ class _SoilHealthPageState extends State<SoilHealthPage>
     kController.dispose();
     super.dispose();
   }
-  void analyzeSoil(BuildContext context) {
+  Future<void> analyzeSoil(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
     double? ph = double.tryParse(phController.text);
     int? n = int.tryParse(nController.text);
@@ -58,21 +82,52 @@ class _SoilHealthPageState extends State<SoilHealthPage>
       );
       return;
     }
-    nutrientLevels = {"N": n, "P": p, "K": k};
-    if (ph < 5.5) {
-      recommendation = l10n.acidicSoil;
-    } else if (ph > 7.5) {
-      recommendation = l10n.alkalineSoil;
-    } else {
-      recommendation = l10n.goodSoil;
+    
+    setState(() {
+      nutrientLevels = {"N": n, "P": p, "K": k};
+      _isAnalyzing = true;
+      recommendation = "Analyzing soil health with AI...";
+    });
+
+    if (!_modelInitialized) {
+      setState(() {
+        recommendation = "⚠️ Gemini API Key not found. Please configure your .env file.";
+        _isAnalyzing = false;
+      });
+      return;
     }
-    if (n < 50) recommendation += "\n${l10n.addN}";
-    if (p < 50) recommendation += "\n${l10n.addP}";
-    if (k < 50) recommendation += "\n${l10n.addK}";
-    if (n >= 50 && p >= 50 && k >= 50) {
-      recommendation += "\n${l10n.balancedNPK}";
+
+    try {
+      final prompt = """
+You are a soil health expert. Analyze the following soil measurements and provide a concise, farmer-friendly review and recommendations:
+- pH Level: $ph (ideal pH for most crops is 6.0 to 7.0)
+- Nitrogen (N): $n mg/kg (ideal level is around 50-80 mg/kg)
+- Phosphorus (P): $p mg/kg (ideal level is around 50-80 mg/kg)
+- Potassium (K): $k mg/kg (ideal level is around 50-80 mg/kg)
+
+Provide:
+1. Soil Type / Status (e.g., Acidic, Alkaline, Neutral/Good, deficient in certain nutrients).
+2. Actionable advice on how to improve the soil (fertilizers to add, organic matter, lime for acid soil, gypsum for alkaline soil, etc.).
+3. Best crops suited for this current soil configuration.
+
+Write the response in the user's selected language. If the language context is Hindi, write in simple Hindi. If English, write in simple English. Keep the tone friendly, practical, and list-oriented. Keep the output under 150 words.
+""";
+
+      final content = [Content.text(prompt)];
+      final response = await _model.generateContent(content);
+      
+      setState(() {
+        recommendation = response.text ?? "⚠️ No response received from Gemini.";
+      });
+    } catch (e) {
+      setState(() {
+        recommendation = "❌ AI analysis failed: $e";
+      });
+    } finally {
+      setState(() {
+        _isAnalyzing = false;
+      });
     }
-    setState(() {});
   }
   InputDecoration _inputDecoration(String label, IconData icon) {
     return InputDecoration(
@@ -245,9 +300,18 @@ class _SoilHealthPageState extends State<SoilHealthPage>
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
-                              onPressed: () => analyzeSoil(context),
-                              icon: Icon(Icons.analytics),
-                              label: Text(l10n.analyzeButton),
+                              onPressed: _isAnalyzing ? null : () => analyzeSoil(context),
+                              icon: _isAnalyzing
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.analytics),
+                              label: Text(_isAnalyzing ? "AI is analyzing..." : l10n.analyzeButton),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Color(0xFF4CAF50),
                                 foregroundColor: Colors.white,
@@ -338,7 +402,8 @@ class _SoilHealthPageState extends State<SoilHealthPage>
                                             l10n.pLabel,
                                             l10n.kLabel
                                           ];
-                                          final text = titles[value.toInt()];
+                                          final rawText = titles[value.toInt()];
+                                          final text = rawText.split('(')[0].trim();
                                           return Padding(
                                             padding: EdgeInsets.only(top: 8),
                                             child: Text(
@@ -488,12 +553,23 @@ class _SoilHealthPageState extends State<SoilHealthPage>
                                 color: Color(0xFF4CAF50).withAlpha(26),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Text(
-                                recommendation,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  height: 1.6,
-                                  color: Colors.black87,
+                              child: MarkdownBody(
+                                data: recommendation,
+                                styleSheet: MarkdownStyleSheet(
+                                  p: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.6,
+                                    color: Colors.black87,
+                                  ),
+                                  strong: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                  listBullet: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.6,
+                                    color: Colors.black87,
+                                  ),
                                 ),
                               ),
                             ),
